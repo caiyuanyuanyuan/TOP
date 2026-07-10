@@ -386,7 +386,7 @@ html, body {
     background: linear-gradient(135deg, rgba(255,255,255,0.3), rgba(255,255,255,0.1));
 }
 
-/* ========== 底部新郎文案 ========== */
+/* ========== 底部新郎文案（竖排） ========== */
 .bottom-text {
     position: absolute;
     bottom: 6%;
