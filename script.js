@@ -36,7 +36,20 @@ document.addEventListener('DOMContentLoaded', function() {
     initPhotoClicks();
     initSidebar();
     initCheckin();
-    
+
+    // 新郎新娘切换
+    document.querySelectorAll('.name-toggle').forEach(el => {
+        el.style.cursor = 'pointer';
+        // 初始状态存在元素上
+        el.dataset.isGroom = "true";
+        const name = el.dataset.name;
+        el.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const flag = this.dataset.isGroom === "true";
+            this.dataset.isGroom = String(!flag);
+            this.textContent = (flag ? '新娘' : '新郎') + name;
+        });
+    });
     // 开屏结束显示主页面
     setTimeout(() => {
         document.getElementById('splash').style.display = 'none';
@@ -372,7 +385,7 @@ function spawnConfetti() {
 function trackGroupClick(id) {
     const now = Date.now();
     groupClickTracker.push({ id, time: now });
-    groupClickTracker = groupClickTracker.filter(item => now - item.time < 3000);
+    groupClickTracker = groupClickTracker.filter(item => now - item.time < 6000);
     const uniqueIds = new Set(groupClickTracker.map(item => item.id));
     
     if (uniqueIds.size >= 5) {
