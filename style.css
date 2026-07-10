@@ -1,0 +1,895 @@
+/* ========== 全局重置 ========== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: "KaiTi", "STKaiti", "楷体", "宋体", serif;
+    background: linear-gradient(135deg, #e8d5f5 0%, #d4b8e8 50%, #c9a8e0 100%);
+    color: #3a2a5a;
+    user-select: none;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* ========== 开屏 ========== */
+.splash {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(180deg, #d4b8e8 0%, #c9a8e0 100%);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: splashFade 3.5s ease-in-out forwards;
+    overflow: hidden;
+}
+
+@keyframes splashFade {
+    0%   { opacity: 1; }
+    70%  { opacity: 1; }
+    100% { opacity: 0; visibility: hidden; }
+}
+
+.splash-content {
+    text-align: center;
+    animation: contentRise 2s ease-out forwards;
+}
+
+@keyframes contentRise {
+    0%   { transform: translateY(60px); opacity: 0; }
+    40%  { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(-10px); opacity: 1; }
+}
+
+.arc-text {
+    width: 90vw;
+    max-width: 380px;
+    display: block;
+}
+
+.arc-stroke {
+    font-size: 38px;
+    font-weight: bold;
+    letter-spacing: 5px;
+    font-family: "KaiTi", "STKaiti", "楷体", serif;
+    stroke: #5a3a8a;
+    stroke-width: 3.5px;
+    paint-order: stroke;
+}
+
+.arc-main {
+    font-size: 38px;
+    font-weight: bold;
+    letter-spacing: 5px;
+    font-family: "KaiTi", "STKaiti", "楷体", serif;
+    filter: 
+        drop-shadow(0 0 8px rgba(255, 255, 255, 0.9))
+        drop-shadow(0 0 16px rgba(220, 200, 255, 0.7))
+        drop-shadow(0 2px 4px rgba(90, 58, 138, 0.4));
+}
+
+.deco-star {
+    font-size: 14px;
+    filter: drop-shadow(0 0 6px rgba(255,255,255,0.8));
+    animation: decoBlink 2s ease-in-out infinite;
+}
+
+.deco-star:last-of-type {
+    animation-delay: 1s;
+}
+
+@keyframes decoBlink {
+    0%, 100% { opacity: 0.4; }
+    50%      { opacity: 1; }
+}
+
+.splash-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 8px;
+    animation: dividerIn 1s ease-out 1s backwards;
+}
+
+@keyframes dividerIn {
+    from { opacity: 0; transform: scaleX(0); }
+    to   { opacity: 1; transform: scaleX(1); }
+}
+
+.splash-divider .line {
+    width: 60px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.7), transparent);
+}
+
+.splash-divider .diamond {
+    color: #fff;
+    font-size: 10px;
+    filter: drop-shadow(0 0 4px rgba(255,255,255,0.8));
+}
+
+/* 漂浮光点 */
+.float-dots {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.float-dots span {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(255,255,255,0.9), 0 0 16px rgba(220,200,255,0.5);
+    animation: dotFloat 4s ease-in-out infinite;
+}
+
+.float-dots span:nth-child(1)  { left: 15%; top: 25%; animation-delay: 0s; }
+.float-dots span:nth-child(2)  { left: 80%; top: 30%; animation-delay: 0.5s; }
+.float-dots span:nth-child(3)  { left: 25%; top: 65%; animation-delay: 1s; }
+.float-dots span:nth-child(4)  { left: 70%; top: 70%; animation-delay: 1.5s; }
+.float-dots span:nth-child(5)  { left: 50%; top: 15%; animation-delay: 2s; }
+.float-dots span:nth-child(6)  { left: 10%; top: 50%; animation-delay: 0.8s; width: 3px; height: 3px; }
+.float-dots span:nth-child(7)  { left: 88%; top: 55%; animation-delay: 1.2s; width: 3px; height: 3px; }
+.float-dots span:nth-child(8)  { left: 35%; top: 80%; animation-delay: 0.3s; width: 5px; height: 5px; }
+.float-dots span:nth-child(9)  { left: 60%; top: 20%; animation-delay: 1.8s; width: 3px; height: 3px; }
+.float-dots span:nth-child(10) { left: 45%; top: 75%; animation-delay: 2.2s; width: 5px; height: 5px; }
+
+@keyframes dotFloat {
+    0%, 100% { 
+        transform: translateY(0) scale(1); 
+        opacity: 0.3; 
+    }
+    50% { 
+        transform: translateY(-20px) scale(1.3); 
+        opacity: 1; 
+    }
+}
+/* ========== 星光粒子层 ========== */
+.particles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+    overflow: hidden;
+}
+
+.star {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 6px #fff, 0 0 12px rgba(200, 180, 255, 0.8);
+    animation: twinkle 3s ease-in-out infinite, floatStar 15s linear infinite;
+}
+
+@keyframes twinkle {
+    0%, 100% { opacity: 0.3; transform: scale(0.8); }
+    50%      { opacity: 1; transform: scale(1.2); }
+}
+
+@keyframes floatStar {
+    0%   { transform: translateY(100vh); }
+    100% { transform: translateY(-10vh); }
+}
+
+/* ========== 蝴蝶层 ========== */
+.butterflies {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 5;
+    overflow: hidden;
+}
+
+.butterfly {
+    position: absolute;
+    font-size: 24px;
+    filter: hue-rotate(270deg) saturate(1.2);
+    animation: flyAround linear infinite;
+    opacity: 0.75;
+}
+
+@keyframes flyAround {
+    0% {
+        transform: translate(0, 0) rotate(0deg) scale(1);
+    }
+    25% {
+        transform: translate(30px, -40px) rotate(15deg) scale(0.9);
+    }
+    50% {
+        transform: translate(-20px, -80px) rotate(-10deg) scale(1.1);
+    }
+    75% {
+        transform: translate(40px, -40px) rotate(20deg) scale(0.95);
+    }
+    100% {
+        transform: translate(0, -120vh) rotate(0deg) scale(1);
+    }
+}
+
+/* ========== 主页面 ========== */
+.main-page {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    z-index: 10;
+    animation: pageFadeIn 1s ease-out 0.5s backwards;
+}
+
+@keyframes pageFadeIn {
+    from { opacity: 0; transform: scale(0.98); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
+/* ========== 按钮通用 ========== */
+.music-btn, .invite-btn, .checkin-btn {
+    position: fixed;
+    width: 44px;
+    height: 44px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(10px);
+    font-size: 20px;
+    cursor: pointer;
+    z-index: 100;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 2px 10px rgba(150, 100, 200, 0.2);
+}
+
+.music-btn:active, .invite-btn:active, .checkin-btn:active {
+    transform: scale(0.9);
+}
+
+.music-btn {
+    top: 20px;
+    right: 20px;
+}
+
+.music-btn.playing {
+    animation: btnPulse 2s ease-in-out infinite;
+}
+
+@keyframes btnPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(180, 150, 255, 0.4); }
+    50%      { box-shadow: 0 0 0 10px rgba(180, 150, 255, 0); }
+}
+
+.invite-btn {
+    top: 20px;
+    left: 20px;
+}
+
+.checkin-btn {
+    bottom: 30px;
+    left: 20px;
+}
+
+/* ========== 摩天轮容器（上移，给底部文字留空间） ========== */
+.ferris-container {
+    position: absolute;
+    top: 42%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 420px;
+    perspective: 1200px;
+    perspective-origin: 50% 50%;
+}
+
+.ferris-wheel {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    animation: wheelSpin 20s linear infinite;
+}
+
+.ferris-wheel.paused {
+    animation-play-state: paused;
+}
+
+@keyframes wheelSpin {
+    from { transform: rotateY(0deg); }
+    to   { transform: rotateY(360deg); }
+}
+
+/* ========== 照片卡片 ========== */
+.photo-card {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 130px;
+    transform-style: preserve-3d;
+    cursor: pointer;
+    transition: filter 0.3s ease;
+}
+
+/* 五张照片均匀分布在360度圆周上，全部可见一起转 */
+.photo-card:nth-child(1) { transform: translate(-50%, -50%) rotateY(0deg)   translateZ(220px); }
+.photo-card:nth-child(2) { transform: translate(-50%, -50%) rotateY(72deg)  translateZ(220px); }
+.photo-card:nth-child(3) { transform: translate(-50%, -50%) rotateY(144deg) translateZ(220px); }
+.photo-card:nth-child(4) { transform: translate(-50%, -50%) rotateY(216deg) translateZ(220px); }
+.photo-card:nth-child(5) { transform: translate(-50%, -50%) rotateY(288deg) translateZ(220px); }
+
+.photo-card.selected {
+    filter: brightness(1.3) drop-shadow(0 0 15px currentColor);
+}
+
+/* 照片相框 */
+.photo-frame {
+    width: 130px;
+    height: 170px;
+    border-radius: 8px;
+    padding: 4px;
+    position: relative;
+    animation: frameGlow 3s ease-in-out infinite;
+    overflow: hidden;
+}
+
+.frame-yellow { background: linear-gradient(135deg, #FFD700, #FFA500, #FFD700); box-shadow: 0 0 18px rgba(255, 215, 0, 0.6); }
+.frame-green  { background: linear-gradient(135deg, #32CD32, #228B22, #32CD32); box-shadow: 0 0 18px rgba(50, 205, 50, 0.6); }
+.frame-orange { background: linear-gradient(135deg, #FF8C00, #FF6347, #FF8C00); box-shadow: 0 0 18px rgba(255, 140, 0, 0.6); }
+.frame-blue   { background: linear-gradient(135deg, #1E90FF, #4169E1, #1E90FF); box-shadow: 0 0 18px rgba(30, 144, 255, 0.6); }
+.frame-red    { background: linear-gradient(135deg, #DC143C, #B22222, #DC143C); box-shadow: 0 0 18px rgba(220, 20, 60, 0.6); }
+
+@keyframes frameGlow {
+    0%, 100% { filter: brightness(1); }
+    50%      { filter: brightness(1.25); }
+}
+
+.photo-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 5px;
+    display: block;
+}
+
+.photo-placeholder {
+    width: 100%;
+    height: 100%;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 20px;
+    font-weight: bold;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    background: linear-gradient(135deg, rgba(255,255,255,0.3), rgba(255,255,255,0.1));
+}
+
+/* ========== 底部新郎文案 ========== */
+.bottom-text {
+    position: absolute;
+    bottom: 8%;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    z-index: 20;
+}
+
+.groom-list {
+    font-size: 15px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+    line-height: 1.8;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+}
+
+.groom-list .dot {
+    color: #9a7ac0;
+    margin: 0 4px;
+    font-size: 12px;
+}
+
+.oath-text {
+    font-size: 14px;
+    color: #5a4a7a;
+    line-height: 2;
+    letter-spacing: 2px;
+    font-family: "KaiTi", "STKaiti", "楷体", serif;
+    text-shadow: 0 0 6px rgba(255, 255, 255, 0.5);
+}
+
+.oath-text p {
+    margin: 0;
+}
+
+/* ========== 唯粉互动气泡 ========== */
+.fan-bubble {
+    position: fixed;
+    top: 25%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 200;
+    animation: bubblePop 0.4s ease-out;
+}
+
+@keyframes bubblePop {
+    0%   { transform: translateX(-50%) scale(0); opacity: 0; }
+    60%  { transform: translateX(-50%) scale(1.1); opacity: 1; }
+    100% { transform: translateX(-50%) scale(1); opacity: 1; }
+}
+
+.bubble-content {
+    background: rgba(255, 255, 255, 0.95);
+    color: #5a3a8a;
+    padding: 16px 24px;
+    border-radius: 20px;
+    font-size: 16px;
+    font-weight: bold;
+    max-width: 260px;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(150, 100, 200, 0.3);
+    position: relative;
+}
+
+.bubble-content::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 10px solid rgba(255, 255, 255, 0.95);
+}
+
+/* 唯粉爱心特效 */
+.heart-burst {
+    position: fixed;
+    pointer-events: none;
+    z-index: 150;
+}
+
+.flying-heart {
+    font-size: 20px;
+    animation: heartFly 2s ease-out forwards;
+    position: absolute;
+}
+
+@keyframes heartFly {
+    0%   { transform: translate(0, 0) scale(0.5); opacity: 1; }
+    100% { transform: translate(var(--tx), var(--ty)) scale(1.2); opacity: 0; }
+}
+
+/* ========== CP合影弹窗 ========== */
+.cp-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(100, 80, 140, 0.6);
+    z-index: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: modalFadeIn 0.4s ease-out;
+}
+
+@keyframes modalFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+.cp-photo {
+    position: relative;
+    width: 280px;
+    height: 360px;
+    background: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 0 40px rgba(255, 255, 255, 0.4);
+    display: flex;
+    gap: 8px;
+    animation: polaroidDrop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes polaroidDrop {
+    0%   { transform: translateY(-50px) rotate(-5deg) scale(0.8); opacity: 0; }
+    100% { transform: translateY(0) rotate(0) scale(1); opacity: 1; }
+}
+
+.cp-left, .cp-right {
+    flex: 1;
+    border-radius: 4px;
+    background-size: cover;
+    background-position: center;
+}
+
+.veil {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 50%;
+    background: linear-gradient(180deg, 
+        rgba(255, 255, 255, 0.75) 0%, 
+        rgba(255, 255, 255, 0.3) 60%,
+        transparent 100%);
+    border-radius: 8px 8px 0 0;
+    pointer-events: none;
+    animation: veilFall 1s ease-out;
+    z-index: 10;
+}
+
+@keyframes veilFall {
+    from { transform: translateY(-100%); opacity: 0; }
+    to   { transform: translateY(0); opacity: 1; }
+}
+
+.cp-nameplate {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 6px 16px;
+    border-radius: 20px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: bold;
+    white-space: nowrap;
+    z-index: 20;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    animation: nameplateSlide 0.8s ease-out 0.5s backwards;
+}
+
+@keyframes nameplateSlide {
+    from { transform: translateX(-50%) translateY(20px); opacity: 0; }
+    to   { transform: translateX(-50%) translateY(0); opacity: 1; }
+}
+
+.cp-petals {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.petal {
+    position: absolute;
+    font-size: 18px;
+    animation: petalFall linear forwards;
+}
+
+@keyframes petalFall {
+    0%   { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(360deg); opacity: 0.5; }
+}
+
+/* ========== 闪光层 ========== */
+.flash-layer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #fff;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 999;
+    transition: opacity 0.1s ease;
+}
+
+.flash-layer.active {
+    opacity: 0.9;
+    transition: opacity 0.05s ease;
+}
+
+/* ========== 五人同框彩蛋 ========== */
+.group-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(180, 150, 220, 0.95);
+    z-index: 600;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    animation: groupFadeIn 0.8s ease-out;
+}
+
+@keyframes groupFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+.group-title {
+    font-size: 24px;
+    color: #7a4ab0;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+    margin-bottom: 30px;
+    letter-spacing: 4px;
+    animation: titleGlow 2s ease-in-out infinite;
+}
+
+@keyframes titleGlow {
+    0%, 100% { text-shadow: 0 0 20px rgba(255, 215, 0, 0.5); }
+    50%      { text-shadow: 0 0 40px rgba(255, 215, 0, 0.9), 0 0 60px rgba(255, 100, 200, 0.4); }
+}
+
+.group-photos {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 30px;
+}
+
+.group-item {
+    width: 60px;
+    height: 80px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 12px;
+    font-weight: bold;
+    animation: groupItemPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+}
+
+.group-item:nth-child(1) { animation-delay: 0.1s; background: linear-gradient(135deg, #FFD700, #FFA500); }
+.group-item:nth-child(2) { animation-delay: 0.2s; background: linear-gradient(135deg, #32CD32, #228B22); }
+.group-item:nth-child(3) { animation-delay: 0.3s; background: linear-gradient(135deg, #FF8C00, #FF6347); }
+.group-item:nth-child(4) { animation-delay: 0.4s; background: linear-gradient(135deg, #1E90FF, #4169E1); }
+.group-item:nth-child(5) { animation-delay: 0.5s; background: linear-gradient(135deg, #DC143C, #B22222); }
+
+@keyframes groupItemPop {
+    0%   { transform: scale(0) rotate(-180deg); opacity: 0; }
+    100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+
+.group-fireworks {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.firework {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    animation: fireworkExplode 1.5s ease-out forwards;
+}
+
+@keyframes fireworkExplode {
+    0%   { transform: translate(0, 0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--fx), var(--fy)) scale(0); opacity: 0; }
+}
+
+/* ========== 请柬侧边栏 ========== */
+.invite-sidebar {
+    position: fixed;
+    top: 0;
+    left: -320px;
+    width: 280px;
+    height: 100%;
+    z-index: 400;
+    transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.invite-sidebar.open {
+    left: 0;
+}
+
+.invite-card {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(180deg, #f0e0fa 0%, #e0c8f0 100%);
+    border-right: 2px solid rgba(180, 130, 220, 0.4);
+    padding: 60px 24px 30px;
+    position: relative;
+    box-shadow: 4px 0 30px rgba(150, 100, 200, 0.2);
+}
+
+.invite-card::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    border: 1px solid rgba(200, 160, 230, 0.5);
+    pointer-events: none;
+}
+
+.invite-title {
+    text-align: center;
+    color: #7a4ab0;
+    font-size: 22px;
+    letter-spacing: 4px;
+    margin-bottom: 16px;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.invite-line {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(180, 130, 220, 0.6), transparent);
+    margin: 16px 0;
+}
+
+.invite-greet {
+    text-align: center;
+    color: #6a5a8a;
+    font-size: 15px;
+    margin-bottom: 20px;
+}
+
+.invite-grooms {
+    list-style: none;
+    text-align: center;
+    font-size: 18px;
+    line-height: 2.2;
+    letter-spacing: 6px;
+    font-weight: bold;
+}
+
+.invite-oath {
+    text-align: center;
+    color: #7a6a9a;
+    font-size: 14px;
+    line-height: 2;
+    margin-top: 20px;
+    letter-spacing: 2px;
+}
+
+.invite-close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 30px;
+    height: 30px;
+    border: none;
+    background: rgba(180, 130, 220, 0.2);
+    color: #5a3a8a;
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+    line-height: 1;
+}
+
+/* ========== 签到弹窗 ========== */
+.checkin-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(150, 120, 190, 0.5);
+    z-index: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: modalFadeIn 0.3s ease-out;
+}
+
+.checkin-card {
+    background: linear-gradient(135deg, #f0e0fa, #e0c8f0);
+    border: 1px solid rgba(180, 130, 220, 0.5);
+    border-radius: 16px;
+    padding: 30px 40px;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(150, 100, 200, 0.2);
+    animation: cardPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes cardPop {
+    0%   { transform: scale(0.5); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.checkin-card h3 {
+    color: #7a4ab0;
+    margin-bottom: 20px;
+    font-size: 20px;
+}
+
+.checkin-days {
+    color: #4a3a6a;
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
+.checkin-days span {
+    color: #FFD700;
+    font-size: 24px;
+    font-weight: bold;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.checkin-total {
+    color: #7a6a9a;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+.checkin-total span {
+    color: #FF69B4;
+    font-weight: bold;
+}
+
+.checkin-ok {
+    background: linear-gradient(135deg, #c89be8, #a878d0);
+    border: none;
+    padding: 10px 30px;
+    border-radius: 20px;
+    color: #fff;
+    font-weight: bold;
+    font-size: 14px;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+/* ========== 撒花特效 ========== */
+.confetti {
+    position: fixed;
+    width: 8px;
+    height: 8px;
+    top: -10px;
+    z-index: 750;
+    animation: confettiFall linear forwards;
+}
+
+@keyframes confettiFall {
+    0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
+/* ========== 响应式适配 ========== */
+@media (max-width: 375px) {
+    .photo-card { width: 115px; }
+    .photo-frame { width: 115px; height: 150px; }
+    
+    .photo-card:nth-child(1) { transform: translate(-50%, -50%) rotateY(0deg)   translateZ(180px); }
+    .photo-card:nth-child(2) { transform: translate(-50%, -50%) rotateY(72deg)  translateZ(180px); }
+    .photo-card:nth-child(3) { transform: translate(-50%, -50%) rotateY(144deg) translateZ(180px); }
+    .photo-card:nth-child(4) { transform: translate(-50%, -50%) rotateY(216deg) translateZ(180px); }
+    .photo-card:nth-child(5) { transform: translate(-50%, -50%) rotateY(288deg) translateZ(180px); }
+
+    .groom-list { font-size: 13px; }
+    .oath-text { font-size: 13px; }
+}
+
+@media (min-width: 420px) {
+    .photo-card { width: 140px; }
+    .photo-frame { width: 140px; height: 185px; }
+}
