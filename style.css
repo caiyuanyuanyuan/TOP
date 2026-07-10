@@ -294,7 +294,7 @@ html, body {
 /* ========== 摩天轮容器（上移，给底部文字留空间） ========== */
 .ferris-container {
     position: absolute;
-    top: 22%;
+    top: 32%;
     left: 50%;
     transform: translate(-50%, -50%);
     width: 92%;
@@ -389,7 +389,7 @@ html, body {
 /* ========== 底部新郎文案（竖排） ========== */
 .bottom-text {
     position: absolute;
-    bottom: 12%;
+    bottom: 22%;
     left: 50%;
     transform: translateX(-50%);
     z-index: 20;
