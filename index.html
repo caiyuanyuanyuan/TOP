@@ -36,6 +36,10 @@
                     </textPath>
                 </text>
             </svg>
+            <!-- 打字机寄语 -->
+            <div class="splash-typing">
+                <span id="typingText"></span><span class="cursor">|</span>
+            </div>
             <!-- 底部装饰线 -->
             <div class="splash-divider">
                 <span class="line"></span>
@@ -56,6 +60,9 @@
     <!-- 蝴蝶层 -->
     <div id="butterflies" class="butterflies"></div>
 
+    <!-- 留言漂浮文字容器 -->
+    <div id="floatingMessages" class="floating-messages"></div>
+
     <!-- 主页面 -->
     <div id="mainPage" class="main-page hidden">
         <!-- 右上角音乐按钮 -->
@@ -64,8 +71,11 @@
         <!-- 左上角请柬按钮 -->
         <button id="inviteBtn" class="invite-btn" title="婚礼请柬">💌</button>
 
-        <!-- 左下角签到按钮 -->
-        <button id="checkinBtn" class="checkin-btn" title="签到">💝</button>
+        <!-- 左下角留言墙按钮 -->
+        <button id="messageBtn" class="message-btn" title="留言墙">✉️</button>
+
+        <!-- 右下角相册回忆墙按钮 -->
+        <button id="albumBtn" class="album-btn" title="回忆墙">📷</button>
 
         <!-- 摩天轮容器 -->
         <div class="ferris-container">
@@ -106,15 +116,15 @@
         <!-- 底部新郎文案 -->
         <div class="bottom-text">
             <div class="groom-list">
-                <span class="name-toggle" style="color:#FFD700" data-name="朱志鑫">新郎朱志鑫</span>
+                <span class="name-toggle" style="color:#FFD700" data-name="朱志鑫" data-color="#FFD700">新郎朱志鑫</span>
                 <span class="dot">·</span>
-                <span class="name-toggle" style="color:#32CD32" data-name="张泽禹">新郎张泽禹</span>
+                <span class="name-toggle" style="color:#32CD32" data-name="张泽禹" data-color="#32CD32">新郎张泽禹</span>
                 <span class="dot">·</span>
-                <span class="name-toggle" style="color:#FF8C00" data-name="张极">新郎张极</span>
+                <span class="name-toggle" style="color:#FF8C00" data-name="张极" data-color="#FF8C00">新郎张极</span>
                 <span class="dot">·</span>
-                <span class="name-toggle" style="color:#1E90FF" data-name="左航">新郎左航</span>
+                <span class="name-toggle" style="color:#1E90FF" data-name="左航" data-color="#1E90FF">新郎左航</span>
                 <span class="dot">·</span>
-                <span class="name-toggle" style="color:#DC143C" data-name="苏新皓">新郎苏新皓</span>
+                <span class="name-toggle" style="color:#DC143C" data-name="苏新皓" data-color="#DC143C">新郎苏新皓</span>
             </div>
             <div class="oath-text">
                 <p>我们决定</p>
@@ -160,7 +170,13 @@
             <div class="invite-card">
                 <h2 class="invite-title">✦ 婚礼请柬 ✦</h2>
                 <div class="invite-line"></div>
-                <p class="invite-greet">诚邀您出席</p>
+                <p class="invite-greet">
+                    这五个人诚邀<br>
+                    <span class="invitee-input-wrap">
+                        <input type="text" id="inviteeInput" class="invitee-input" placeholder="您的昵称" maxlength="12">
+                    </span><br>
+                    来参加我们的婚礼
+                </p>
                 <ul class="invite-grooms">
                     <li style="color:#FFD700">朱志鑫</li>
                     <li style="color:#32CD32">张泽禹</li>
@@ -168,7 +184,6 @@
                     <li style="color:#1E90FF">左　航</li>
                     <li style="color:#DC143C">苏新皓</li>
                 </ul>
-                <p class="invite-oath">的婚礼</p>
                 <div class="invite-line"></div>
                 <p class="invite-oath">
                     我们决定<br>
@@ -179,14 +194,50 @@
             </div>
         </div>
 
-        <!-- 签到弹窗 -->
-        <div id="checkinModal" class="checkin-modal hidden">
-            <div class="checkin-card">
-                <h3>💝 签到成功 💝</h3>
-                <p class="checkin-days">今日是你爱上TOP的第n＋ <span id="daysCount">1</span> 天</p>
-                <p class="checkin-total">累计签到：<span id="totalCheckin">1</span> 次</p>
-                <button class="checkin-ok" id="checkinOk">好哒～</button>
+        <!-- 留言墙弹窗 -->
+        <div id="messageModal" class="message-modal hidden">
+            <div class="message-card">
+                <h3>💌 留言墙 💌</h3>
+                <p class="message-sub">写下你的告白，让它飘向婚礼星球</p>
+                <textarea id="messageInput" class="message-input" maxlength="30" placeholder="写下简短告白（最多30字）"></textarea>
+                <div class="message-count"><span id="msgCount">0</span>/30</div>
+                <div class="message-actions">
+                    <button class="msg-cancel" id="msgCancel">取消</button>
+                    <button class="msg-submit" id="msgSubmit">发送告白</button>
+                </div>
             </div>
+        </div>
+
+       <!-- 相册回忆墙弹窗（移除大图查看器，幻灯片内置文案） -->
+        <div id="albumModal" class="album-modal hidden">
+            <div class="album-header">
+                <h3>✨ 回忆墙 ✨</h3>
+                <button class="album-close" id="albumClose">×</button>
+            </div>
+            <div class="album-carousel" id="albumCarousel">
+                <div class="album-track" id="albumTrack">
+                    <div class="album-slide" data-index="0">
+                        <img src="1.jpg" alt="回忆1" onerror="this.style.display='none';this.parentNode.innerHTML+='<div class=album-placeholder>回忆 1</div>'">
+                        <div class="slide-caption"></div>
+                    </div>
+                    <div class="album-slide" data-index="1">
+                        <img src="2.jpg" alt="回忆2" onerror="this.style.display='none';this.parentNode.innerHTML+='<div class=album-placeholder>回忆 2</div>'">
+                        <div class="slide-caption"></div>
+                    </div>
+                    <div class="album-slide" data-index="2">
+                        <img src="3.jpg" alt="回忆3" onerror="this.style.display='none';this.parentNode.innerHTML+='<div class=album-placeholder>回忆 3</div>'">
+                        <div class="slide-caption"></div>
+                    </div>
+                </div>
+                <button class="album-arrow prev" id="albumPrev">‹</button>
+                <button class="album-arrow next" id="albumNext">›</button>
+                <div class="album-dots" id="albumDots">
+                    <span class="dot active"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                </div>
+            </div>
+            <p class="album-tip">左右滑动 / 点击箭头切换照片</p>
         </div>
 
         <!-- 闪光层 -->

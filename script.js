@@ -7,6 +7,13 @@ const members = [
     { id: 4, name: '苏新皓', color: '#DC143C', color2: '#B22222' }
 ];
 
+// ========== 回忆墙文案 ==========
+const memoryTexts = [
+    '从初次相遇的青涩到如今并肩的模样，六百日星光相伴，五个少年紧紧相依。用心拼凑出专属彼此的圆满，往后无数个朝夕，继续带着热爱并肩向前，奔赴更多闪闪发光的未来。',
+    '车库灯光衬着一身白衣，五个少年肆意鲜活。每一次整齐的律动、默契的对视，都是藏在舞蹈里的热忱。汗水与热爱相伴，舞台之外同样耀眼，带着十足气场起舞，奔赴属于我们的热烈与星光。',
+    '荣耀之夜并肩站上领奖台，五人同举奖杯，挥手迎接属于我们的荣光。舞台上全力以赴的每一刻都有了答案，汗水化作闪闪发光的勋章。往后继续携手前行，带着这份胜利的热烈，奔赴更多更高的顶峰。'
+];
+
 // 唯粉情话库
 const fanWords = {
     0: ['朱志鑫，你是最耀眼的光！', '鑫光璀璨，只为你而来', '今天也在为朱志鑫心动💛', '朱志鑫往前走，我们在身后', '愿你永远闪闪发光'],
@@ -35,12 +42,13 @@ document.addEventListener('DOMContentLoaded', function() {
     initMusic();
     initPhotoClicks();
     initSidebar();
-    initCheckin();
+    initMessageWall();       // 新增：留言墙
+    initAlbum();             // 新增：相册回忆墙
+    initTypingAnimation();   // 新增：开屏打字机
 
-    // 新郎新娘切换
+        // 新郎新娘切换 + hover 光晕
     document.querySelectorAll('.name-toggle').forEach(el => {
         el.style.cursor = 'pointer';
-        // 初始状态存在元素上
         el.dataset.isGroom = "true";
         const name = el.dataset.name;
         el.addEventListener('click', function(e) {
@@ -50,11 +58,12 @@ document.addEventListener('DOMContentLoaded', function() {
             this.textContent = (flag ? '新娘' : '新郎') + name;
         });
     });
+
     // 开屏结束显示主页面
     setTimeout(() => {
         document.getElementById('splash').style.display = 'none';
         document.getElementById('mainPage').classList.remove('hidden');
-    }, 2000);
+    }, 3000);
 
     // 首次点击播放音乐
     document.body.addEventListener('click', function firstClick() {
@@ -321,6 +330,12 @@ function initSidebar() {
         e.stopPropagation();
         document.getElementById('inviteSidebar').classList.remove('open');
     });
+    const inviteeInput = document.getElementById('inviteeInput');
+    const saved = localStorage.getItem('top_invitee_name');
+    if (saved) inviteeInput.value = saved;
+    inviteeInput.addEventListener('input', function() {
+         localStorage.setItem('top_invitee_name', this.value);
+});
 }
 
 // ========== 签到 ==========
@@ -379,6 +394,228 @@ function spawnConfetti() {
         document.body.appendChild(c);
         setTimeout(() => c.remove(), 4500);
     }
+}
+
+// ========== 开屏打字机动画 ==========
+function initTypingAnimation() {
+    const text = '欢迎来到我们的婚礼星球';
+    const target = document.getElementById('typingText');
+    let i = 0;
+    // 延迟 1 秒后开始打字，配合弧形文字出现
+    setTimeout(function type() {
+        if (i < text.length) {
+            target.textContent += text.charAt(i);
+            i++;
+            setTimeout(type, 160);
+        }
+    }, 1000);
+}
+
+// ========== 留言墙 ==========
+function initMessageWall() {
+    const btn = document.getElementById('messageBtn');
+    const modal = document.getElementById('messageModal');
+    const input = document.getElementById('messageInput');
+    const countEl = document.getElementById('msgCount');
+    const cancelBtn = document.getElementById('msgCancel');
+    const submitBtn = document.getElementById('msgSubmit');
+    const floatContainer = document.getElementById('floatingMessages');
+
+    btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        modal.classList.remove('hidden');
+        input.value = '';
+        countEl.textContent = '0';
+        setTimeout(() => input.focus(), 100);
+    });
+
+    // 字数统计
+    input.addEventListener('input', function() {
+        countEl.textContent = this.value.length;
+    });
+
+    // 取消
+    cancelBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        modal.classList.add('hidden');
+    });
+
+    // 提交
+    submitBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const msg = input.value.trim();
+        if (!msg) {
+            input.focus();
+            return;
+        }
+        spawnFloatingMessage(msg);
+        modal.classList.add('hidden');
+    });
+
+    // 点击遮罩关闭
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) modal.classList.add('hidden');
+    });
+}
+
+function spawnFloatingMessage(text) {
+    const container = document.getElementById('floatingMessages');
+    const msg = document.createElement('div');
+    msg.className = 'float-msg';
+    msg.textContent = text;
+    // 随机水平位置（左右两侧区域，避开中间摩天轮）
+    const side = Math.random() > 0.5 ? 'left' : 'right';
+    const baseX = side === 'left' ? 5 + Math.random() * 20 : 75 + Math.random() * 20;
+    msg.style.left = baseX + '%';
+    // 随机颜色（五个应援色）
+    const colors = ['#FFD700', '#32CD32', '#FF8C00', '#1E90FF', '#DC143C'];
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    msg.style.color = color;
+    msg.style.animationDuration = (7 + Math.random() * 3) + 's';
+    // 随机字号
+    msg.style.fontSize = (13 + Math.random() * 4) + 'px';
+    container.appendChild(msg);
+    setTimeout(() => msg.remove(), 10000);
+}
+
+// ========== 相册回忆墙（修改：移除大图查看，切换自动显示文案） ==========
+let currentAlbumIndex = 0;
+const totalAlbums = 3;
+let albumAutoTimer = null;
+
+function initAlbum() {
+    const btn = document.getElementById('albumBtn');
+    const modal = document.getElementById('albumModal');
+    const closeBtn = document.getElementById('albumClose');
+    const prevBtn = document.getElementById('albumPrev');
+    const nextBtn = document.getElementById('albumNext');
+    const track = document.getElementById('albumTrack');
+    const dots = document.querySelectorAll('#albumDots .dot');
+    const slides = document.querySelectorAll('.album-slide');
+    const captions = document.querySelectorAll('.slide-caption');
+
+    // 打开相册
+    btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        modal.classList.remove('hidden');
+        fillCurrentCaption();
+        startAlbumAutoPlay();
+    });
+
+    // 关闭相册
+    closeBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        closeAlbum();
+    });
+
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) closeAlbum();
+    });
+
+    // 左右切换
+    prevBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        prevAlbum();
+        resetAlbumTimer();
+    });
+
+    nextBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        nextAlbum();
+        resetAlbumTimer();
+    });
+
+    // 指示点切换
+    dots.forEach((dot, idx) => {
+        dot.addEventListener('click', function(e) {
+            e.stopPropagation();
+            goToAlbum(idx);
+            resetAlbumTimer();
+        });
+    });
+
+    // 滑动手势
+    initAlbumSwipe(track);
+}
+
+// 填充当前幻灯片文案
+function fillCurrentCaption() {
+    const captions = document.querySelectorAll('.slide-caption');
+    captions.forEach((cap, idx) => {
+        cap.textContent = memoryTexts[idx];
+    });
+}
+
+function closeAlbum() {
+    document.getElementById('albumModal').classList.add('hidden');
+    stopAlbumAutoPlay();
+}
+
+function updateAlbumDisplay() {
+    const track = document.getElementById('albumTrack');
+    const dots = document.querySelectorAll('#albumDots .dot');
+    track.style.transform = `translateX(-${currentAlbumIndex * 100}%)`;
+    dots.forEach((d, i) => d.classList.toggle('active', i === currentAlbumIndex));
+}
+
+function nextAlbum() {
+    currentAlbumIndex = (currentAlbumIndex + 1) % totalAlbums;
+    updateAlbumDisplay();
+}
+
+function prevAlbum() {
+    currentAlbumIndex = (currentAlbumIndex - 1 + totalAlbums) % totalAlbums;
+    updateAlbumDisplay();
+}
+
+function goToAlbum(idx) {
+    currentAlbumIndex = idx;
+    updateAlbumDisplay();
+}
+
+function startAlbumAutoPlay() {
+    stopAlbumAutoPlay();
+    albumAutoTimer = setInterval(nextAlbum, 3500);
+}
+
+function stopAlbumAutoPlay() {
+    if (albumAutoTimer) {
+        clearInterval(albumAutoTimer);
+        albumAutoTimer = null;
+    }
+}
+
+function resetAlbumTimer() {
+    startAlbumAutoPlay();
+}
+
+// 触屏滑动
+function initAlbumSwipe(track) {
+    let startX = 0;
+    let moveX = 0;
+    let isDragging = false;
+
+    track.addEventListener('touchstart', function(e) {
+        startX = e.touches[0].clientX;
+        isDragging = true;
+        stopAlbumAutoPlay();
+    }, { passive: true });
+
+    track.addEventListener('touchmove', function(e) {
+        if (!isDragging) return;
+        moveX = e.touches[0].clientX - startX;
+    }, { passive: true });
+
+    track.addEventListener('touchend', function() {
+        if (!isDragging) return;
+        isDragging = false;
+        if (Math.abs(moveX) > 50) {
+            if (moveX > 0) prevAlbum();
+            else nextAlbum();
+        }
+        moveX = 0;
+        startAlbumAutoPlay();
+    });
 }
 
 // ========== 五人同框彩蛋 ==========
