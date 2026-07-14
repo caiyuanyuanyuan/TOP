@@ -1377,8 +1377,8 @@ html, body {
     position: fixed;
     right: 20px;
     bottom: 80px;
-    width: 60px;
-    height: 60px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     border:none;
     background: rgba(190,160,240,0.85);
@@ -1539,8 +1539,8 @@ html, body {
     margin-bottom: 10px;
 }
 .round-table{
-    width: min(13vh,130px);
-    height: min(13vh,130px);
+    width: min(12vh,120px);
+    height: min(12vh,120px);
     position:relative;
     background:rgba(255,255,255,0.28);
     backdrop-filter:blur(6px);
@@ -1571,8 +1571,8 @@ html, body {
     position:absolute;
 }
 .seat{
-    width: max(26px,3.2vh);
-    height: max(26px,3.2vh);
+    width: max(22px,3vh);
+    height: max(22px,3vh);
     border-radius:50%;
     background:rgba(255,255,255,0.4);
     border:1px solid #d0b8ee;
