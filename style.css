@@ -1778,66 +1778,28 @@ button { -webkit-user-select: none; user-select: none; }
 .photo-card:nth-child(4) { transform: translate(-50%, -50%) rotateY(216deg) translateZ(var(--wheel-depth)); }
 .photo-card:nth-child(5) { transform: translate(-50%, -50%) rotateY(288deg) translateZ(var(--wheel-depth)); }
 
-.photo-card.group-collected .photo-frame::after {
-    content: '★';
-    position: absolute;
-    top: 7px;
-    right: 7px;
-    width: 26px;
-    height: 26px;
-    display: grid;
-    place-items: center;
-    border-radius: 50%;
-    color: #fff8c6;
-    background: rgba(83, 49, 116, .72);
-    border: 1px solid rgba(255,255,255,.75);
-    box-shadow: 0 0 14px currentColor;
-    z-index: 3;
-    animation: collectedStar .65s cubic-bezier(.2,1.6,.4,1);
-}
-
-@keyframes collectedStar {
-    from { transform: scale(.1) rotate(-120deg); opacity: 0; }
-    to { transform: scale(1) rotate(0); opacity: 1; }
-}
-
-.wheel-controls {
-    position: absolute;
-    top: clamp(398px, 56.5vh, 510px);
-    left: 50%;
-    width: min(92vw, 520px);
-    transform: translateX(-50%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 8px 10px;
-    z-index: 36;
-}
-
-.wheel-mode-btn, .group-egg-btn {
+.group-egg-btn {
+    position: fixed;
+    top: calc(var(--safe-top) + 18px);
+    right: calc(var(--safe-right) + 74px);
+    z-index: 210;
+    min-width: 48px;
     min-height: 36px;
-    border: 1px solid rgba(255,255,255,.8);
+    border: 1px solid rgba(255,255,255,.82);
     border-radius: 999px;
-    padding: 7px 13px;
+    padding: 7px 11px;
     color: #553474;
-    background: rgba(255,255,255,.64);
+    background: rgba(255,255,255,.68);
     box-shadow: 0 8px 20px rgba(87,52,120,.14);
     backdrop-filter: blur(12px);
     cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
 }
-
-.wheel-mode-btn[aria-pressed="true"] { background: rgba(96,63,135,.82); color: #fff; }
-.wheel-drag-tip { width: 100%; text-align: center; font-size: 12px; color: rgba(76,49,101,.74); letter-spacing: 1px; }
-.group-egg-btn strong { color: #7f4aab; }
 .group-egg-btn.unlocked {
     color: #fff;
-    background: linear-gradient(120deg, #9c72d2, #7250ad, #c08bd8);
-    background-size: 200% 100%;
-    animation: eggGlow 2.2s linear infinite;
+    background: linear-gradient(120deg, #9c72d2, #7250ad);
 }
-.group-egg-btn.unlocked strong { color: #fff7b4; }
-@keyframes eggGlow { to { background-position: -200% 0; } }
 
 .bottom-text {
     top: clamp(505px, 69vh, 610px);
@@ -1969,8 +1931,8 @@ button { -webkit-user-select: none; user-select: none; }
     grid-template-columns: minmax(0, 1fr) clamp(50px, 16vw, 92px) minmax(0, 1fr);
     gap: clamp(2px, 1.5vw, 12px);
 }
-.table-column { min-width: 0; height: auto; padding: 0; gap: clamp(20px, 3.8dvh, 38px); justify-content: start; }
-.round-table-wrap { width: 100%; min-width: 0; }
+.table-column { min-width: 0; height: auto; padding: 0; gap: clamp(28px, 5dvh, 48px); justify-content: start; overflow: visible; }
+.round-table-wrap { width: 100%; min-width: 0; padding: calc(var(--seat-size) * 1.18) 0; overflow: visible; }
 .table-name-tag { margin-bottom: 7px; font-size: clamp(11px, 3.2vw, 15px); white-space: nowrap; }
 .round-table {
     width: var(--table-size);
@@ -2090,12 +2052,6 @@ button { -webkit-user-select: none; user-select: none; }
     .stage-emoji, .walk-emoji, .group-egg-btn { animation-iteration-count: 1 !important; }
 }
 
-.group-egg-btn.collecting {
-    color: #fff;
-    background: linear-gradient(120deg, #7050a1, #a775cf);
-    box-shadow: 0 0 0 4px rgba(255,255,255,.28), 0 8px 22px rgba(82,48,116,.25);
-}
-.group-egg-btn.collecting strong { color: #fff2a8; }
 
 /* 矮屏手机：把功能按钮移到上方，避免压住底部竖排文案 */
 @media (max-height: 650px) and (orientation: portrait) {

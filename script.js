@@ -240,15 +240,13 @@ function resumeWheel() {
     ferrisController?.setSelectionPaused(false);
 }
 
-// ========== 摩天轮：自动旋转 + 鼠标/触屏手动拖动 ==========
+// ========== 摩天轮：自动旋转，同时支持用户手动拖动 ==========
 function initFerrisWheelControls() {
     const container = document.querySelector('.ferris-container');
     const wheel = document.getElementById('ferrisWheel');
-    const modeBtn = document.getElementById('wheelModeBtn');
-    if (!container || !wheel || !modeBtn) return;
+    if (!container || !wheel) return;
 
     let angle = Number(safeStorage.getItem('top_wheel_angle') || 0);
-    let autoRotate = safeStorage.getItem('top_wheel_auto') !== '0';
     let selectionPaused = false;
     let dragging = false;
     let pointerId = null;
@@ -258,7 +256,6 @@ function initFerrisWheelControls() {
     let inertia = 0;
     let lastFrameAt = performance.now();
     let saveTimer = null;
-    const autoSpeed = 360 / 24000; // 每24秒一圈，单位：度/毫秒
 
     const render = () => {
         wheel.style.transform = `rotateY(${angle}deg)`;
@@ -268,17 +265,10 @@ function initFerrisWheelControls() {
         clearTimeout(saveTimer);
         saveTimer = setTimeout(() => {
             safeStorage.setItem('top_wheel_angle', String(Math.round(angle * 100) / 100));
-            safeStorage.setItem('top_wheel_auto', autoRotate ? '1' : '0');
         }, 180);
     };
 
-    const updateModeButton = () => {
-        modeBtn.textContent = autoRotate ? '自动旋转：开' : '自动旋转：关';
-        modeBtn.setAttribute('aria-pressed', autoRotate ? 'false' : 'true');
-        modeBtn.title = autoRotate ? '点击关闭自动旋转，仍可手动滑动' : '点击恢复自动旋转';
-    };
-
-    const endPointer = (event) => {
+    const endPointer = event => {
         if (!dragging || (pointerId !== null && event.pointerId !== pointerId)) return;
         dragging = false;
         container.classList.remove('dragging');
@@ -293,7 +283,6 @@ function initFerrisWheelControls() {
 
     container.addEventListener('pointerdown', event => {
         if (event.pointerType === 'mouse' && event.button !== 0) return;
-        if (event.target.closest('.wheel-controls')) return;
         dragging = true;
         pointerId = event.pointerId;
         lastX = event.clientX;
@@ -330,23 +319,15 @@ function initFerrisWheelControls() {
         saveStateSoon();
     }, { passive: false });
 
-    modeBtn.addEventListener('click', event => {
-        event.stopPropagation();
-        autoRotate = !autoRotate;
-        inertia = 0;
-        updateModeButton();
-        saveStateSoon();
-    });
-
     function tick(now) {
         const dt = Math.min(48, now - lastFrameAt);
         lastFrameAt = now;
         if (!dragging && !selectionPaused) {
-            if (autoRotate) {
-                angle += autoSpeed * dt;
-            } else if (Math.abs(inertia) > 0.0008) {
+            if (Math.abs(inertia) > 0.0008) {
                 angle += inertia * dt;
                 inertia *= Math.pow(0.91, dt / 16.67);
+            } else {
+                angle += 0.012 * dt;
             }
             render();
         }
@@ -354,12 +335,10 @@ function initFerrisWheelControls() {
     }
 
     ferrisController = {
-        setSelectionPaused(value) { selectionPaused = Boolean(value); },
-        isAutoRotate() { return autoRotate; }
+        setSelectionPaused(value) { selectionPaused = Boolean(value); }
     };
 
     render();
-    updateModeButton();
     requestAnimationFrame(tick);
 }
 function clearSelection() {
@@ -723,7 +702,7 @@ function initAlbumSwipe(track) {
     });
 }
 
-// ========== 五人同框彩蛋：逐个点亮，永久解锁 ==========
+// ========== 五人同框彩蛋：点击五位成员后自动解锁 ==========
 function initGroupEgg() {
     const button = document.getElementById('groupEggBtn');
     const modal = document.getElementById('groupModal');
@@ -734,16 +713,8 @@ function initGroupEgg() {
 
     button.addEventListener('click', event => {
         event.stopPropagation();
-        if (groupSeenIds.size >= members.length || safeStorage.getItem('top_group_unlocked') === '1') {
-            triggerGroupMode();
-        } else {
-            groupCollectMode = !groupCollectMode;
-            updateGroupProgress();
-            const remaining = members.length - groupSeenIds.size;
-            showFanBubble(groupCollectMode
-                ? `点亮模式已开启：依次点击剩余 ${remaining} 位成员 ✨`
-                : '已退出点亮模式，照片恢复普通互动');
-        }
+        const unlocked = groupSeenIds.size >= members.length || safeStorage.getItem('top_group_unlocked') === '1';
+        if (unlocked) triggerGroupMode();
     });
 
     closeBtn?.addEventListener('click', event => {
@@ -761,18 +732,13 @@ function initGroupEgg() {
 }
 
 function updateGroupProgress() {
-    const progress = document.getElementById('groupProgress');
-    const label = document.getElementById('groupEggLabel');
     const button = document.getElementById('groupEggBtn');
-    document.querySelectorAll('.photo-card').forEach(card => {
-        card.classList.toggle('group-collected', groupSeenIds.has(Number(card.dataset.id)));
-    });
-    if (progress) progress.textContent = `${Math.min(groupSeenIds.size, members.length)}/${members.length}`;
     const unlocked = groupSeenIds.size >= members.length || safeStorage.getItem('top_group_unlocked') === '1';
     button?.classList.toggle('unlocked', unlocked);
-    button?.classList.toggle('collecting', groupCollectMode && !unlocked);
-    if (label) label.textContent = unlocked ? '✨ 五人彩蛋已解锁' : (groupCollectMode ? '⭐ 正在点亮成员' : '✨ 五人彩蛋');
-    if (button) button.setAttribute('aria-label', unlocked ? '五人彩蛋已解锁，点击打开' : (groupCollectMode ? '点亮模式已开启，点击可退出' : '开启五人彩蛋点亮模式'));
+    if (button) {
+        button.textContent = '五人';
+        button.setAttribute('aria-label', unlocked ? '打开五人彩蛋' : '五人彩蛋尚未解锁');
+    }
 }
 
 function trackGroupClick(id) {
@@ -780,20 +746,17 @@ function trackGroupClick(id) {
         groupSeenIds.add(id);
         safeStorage.setItem('top_group_seen_ids', JSON.stringify([...groupSeenIds]));
         updateGroupProgress();
-        const member = members.find(item => item.id === id);
-        showFanBubble(`已点亮 ${member?.name || '一位成员'} · ${groupSeenIds.size}/${members.length}`);
     }
 
     if (groupSeenIds.size >= members.length && safeStorage.getItem('top_group_unlocked') !== '1') {
         safeStorage.setItem('top_group_unlocked', '1');
         groupUnlockedThisSession = true;
-        groupCollectMode = false;
         updateGroupProgress();
         clearSelection();
-        setTimeout(triggerGroupMode, 450);
+        setTimeout(triggerGroupMode, 280);
         return true;
     }
-    return groupCollectMode;
+    return false;
 }
 
 function triggerGroupMode() {
@@ -1063,7 +1026,7 @@ function layoutSeatRings() {
         const seatSize = seats[0].getBoundingClientRect().width || 24;
         const centerX = rect.width / 2;
         const centerY = rect.height / 2;
-        const radius = Math.max(0, Math.min(rect.width, rect.height) / 2 - seatSize * 0.56 - 2);
+        const radius = Math.min(rect.width, rect.height) / 2 + seatSize * 0.5 + 10;
         seats.forEach((seat, index) => {
             const angle = -Math.PI / 2 + (Math.PI * 2 / seats.length) * index;
             seat.style.left = `${centerX + Math.cos(angle) * radius}px`;
