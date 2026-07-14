@@ -1375,7 +1375,7 @@ html, body {
 /* ====================== 婚宴页面样式 浅紫梦幻｜修复布局 ====================== */
 .seat-btn{
     position: fixed;
-    right: 20px;
+    left: 14px;
     bottom: 80px;
     width: 44px;
     height: 44px;
@@ -1719,7 +1719,7 @@ button { -webkit-user-select: none; user-select: none; }
 .message-btn { bottom: calc(var(--safe-bottom) + 16px); left: calc(var(--safe-left) + 14px); }
 .album-btn { bottom: calc(var(--safe-bottom) + 16px); right: calc(var(--safe-right) + 14px); }
 .seat-btn {
-    right: calc(var(--safe-right) + 15px);
+    left: calc(var(--safe-right) + 14px);
     bottom: calc(var(--safe-bottom) + 68px);
     background: linear-gradient(145deg, rgba(160,118,215,.92), rgba(111,72,166,.92));
     color: #fff;
@@ -1781,7 +1781,7 @@ button { -webkit-user-select: none; user-select: none; }
 .group-egg-btn {
     position: fixed;
     top: calc(var(--safe-top) + 14px);
-    right: calc(var(--safe-right) + 72px);
+    right: calc(var(--safe-right) + 20px);
     left: auto;
     z-index: 210;
     width: clamp(42px, 11vw, 48px);
@@ -2082,7 +2082,7 @@ button { -webkit-user-select: none; user-select: none; }
     }
     .seat-btn {
         top: calc(var(--safe-top) + 120px);
-        right: calc(var(--safe-right) + 14px);
+        left: calc(var(--safe-right) + 14px);
         bottom: auto;
     }
     .ferris-container { top: 245px; }
