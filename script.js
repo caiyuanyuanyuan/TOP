@@ -714,7 +714,13 @@ function initGroupEgg() {
     button.addEventListener('click', event => {
         event.stopPropagation();
         const unlocked = groupSeenIds.size >= members.length || safeStorage.getItem('top_group_unlocked') === '1';
-        if (unlocked) triggerGroupMode();
+        if (unlocked) {
+            triggerGroupMode();
+            return;
+        }
+
+        const remaining = Math.max(0, members.length - groupSeenIds.size);
+        showFanBubble(`彩蛋还在准备中～还差 ${remaining} 位成员，点亮摩天轮里的五张照片后就能开启啦 ✨`);
     });
 
     closeBtn?.addEventListener('click', event => {
@@ -736,8 +742,11 @@ function updateGroupProgress() {
     const unlocked = groupSeenIds.size >= members.length || safeStorage.getItem('top_group_unlocked') === '1';
     button?.classList.toggle('unlocked', unlocked);
     if (button) {
+        const remaining = Math.max(0, members.length - groupSeenIds.size);
         button.textContent = '五人';
-        button.setAttribute('aria-label', unlocked ? '打开五人彩蛋' : '五人彩蛋尚未解锁');
+        button.setAttribute('aria-label', unlocked ? '打开五人彩蛋' : `五人彩蛋尚未解锁，还差${remaining}位成员`);
+        button.setAttribute('aria-disabled', unlocked ? 'false' : 'true');
+        button.title = unlocked ? '打开五人彩蛋' : `还差 ${remaining} 位成员即可解锁`;
     }
 }
 
