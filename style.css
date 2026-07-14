@@ -1729,7 +1729,7 @@ button { -webkit-user-select: none; user-select: none; }
 
 .ferris-container {
     position: absolute;
-    top: clamp(188px, 31vh, 286px);
+    top: clamp(210px, 34vh, 310px);
     left: 50%;
     width: min(96vw, 620px);
     height: clamp(270px, 41vh, 390px);
@@ -1780,23 +1780,26 @@ button { -webkit-user-select: none; user-select: none; }
 
 .group-egg-btn {
     position: fixed;
-    top: calc(var(--safe-top) + 16px);
+    top: calc(var(--safe-top) + 14px);
     right: calc(var(--safe-right) + 72px);
     left: auto;
     z-index: 210;
-    min-width: 48px;
-    min-height: 36px;
+    width: clamp(42px, 11vw, 48px);
+    height: clamp(42px, 11vw, 48px);
+    display: grid;
+    place-items: center;
     border: 1px solid rgba(255,255,255,.72);
-    border-radius: 999px;
-    padding: 7px 11px;
+    border-radius: 50%;
+    padding: 0;
     color: rgba(255,255,255,.95);
-    background: linear-gradient(135deg, #aaa5af, #817b88);
-    box-shadow: 0 6px 16px rgba(62,55,70,.16), inset 0 1px rgba(255,255,255,.28);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: linear-gradient(145deg, #aaa5af, #817b88);
+    box-shadow: 0 8px 24px rgba(62,55,70,.16), inset 0 1px rgba(255,255,255,.45);
+    backdrop-filter: blur(14px) saturate(1.15);
+    -webkit-backdrop-filter: blur(14px) saturate(1.15);
     cursor: pointer;
     font-family: inherit;
-    font-size: 13px;
+    font-size: 12px;
+    font-weight: 700;
     opacity: .82;
     filter: grayscale(1) saturate(.2);
     transition: transform .2s ease, opacity .25s ease, filter .25s ease, box-shadow .25s ease;
@@ -1806,9 +1809,9 @@ button { -webkit-user-select: none; user-select: none; }
     color: #fff;
     opacity: 1;
     filter: none;
-    border-color: rgba(255,255,255,.9);
-    background: linear-gradient(105deg, #f2cd36 0 20%, #47bf5a 20% 40%, #f08b28 40% 60%, #438fe7 60% 80%, #d94361 80% 100%);
-    box-shadow: 0 8px 22px rgba(102,66,145,.25), 0 0 16px rgba(255,255,255,.3);
+    border-color: var(--glass-border);
+    background: linear-gradient(145deg, rgba(160,118,215,.92), rgba(111,72,166,.92));
+    box-shadow: 0 8px 24px rgba(91,56,126,.22), inset 0 1px rgba(255,255,255,.55);
 }
 
 .bottom-text {
@@ -2018,9 +2021,9 @@ button { -webkit-user-select: none; user-select: none; }
         --seat-size: 21px;
     }
     .main-page { min-height: 680px; }
-    .ferris-container { top: 200px; height: 248px; }
-    .wheel-controls { top: 378px; }
-    .bottom-text { top: 375px; }
+    .ferris-container { top: 222px; height: 248px; }
+    .wheel-controls { top: 392px; }
+    .bottom-text { top: 385px; }
     .group-photos { grid-template-columns: repeat(3, minmax(0, 1fr)); width: min(88vw, 430px); }
     .group-item:nth-child(4), .group-item:nth-child(5) { transform: translateX(50%); }
     .banquet-main-container { grid-template-columns: minmax(0, 1fr) 46px minmax(0, 1fr); padding-inline: 2px; }
@@ -2082,5 +2085,6 @@ button { -webkit-user-select: none; user-select: none; }
         right: calc(var(--safe-right) + 14px);
         bottom: auto;
     }
-    .bottom-text { top: 395px; }
+    .ferris-container { top: 245px; }
+    .bottom-text { top: 410px; }
 }

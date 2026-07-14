@@ -743,10 +743,10 @@ function updateGroupProgress() {
     button?.classList.toggle('unlocked', unlocked);
     if (button) {
         const remaining = Math.max(0, members.length - groupSeenIds.size);
-        button.textContent = '五人';
-        button.setAttribute('aria-label', unlocked ? '打开五人彩蛋' : `五人彩蛋尚未解锁，还差${remaining}位成员`);
+        button.textContent = '彩蛋';
+        button.setAttribute('aria-label', unlocked ? '打开彩蛋' : `彩蛋尚未解锁，还差${remaining}位成员`);
         button.setAttribute('aria-disabled', unlocked ? 'false' : 'true');
-        button.title = unlocked ? '打开五人彩蛋' : `还差 ${remaining} 位成员即可解锁`;
+        button.title = unlocked ? '打开彩蛋' : `还差 ${remaining} 位成员即可解锁`;
     }
 }
 
