@@ -1,208 +1,106 @@
-// ========== 歌曲列表（17首合作曲） ==========
-const songList = [
-    '2018 试训时期《泡沫》',
-    '2018.8.29《改变自己》',
-    '2020.7.3《Because of you》',
-    '2020.11.6《只对你有感觉》',
-    '2022.2.3《R&B all right》',
-    '2022.10.24《诀爱》',
-    '2023.1.26《流浪记》',
-    '2023.4.16《Rolling In The Deep》',
-    '2023.8.13《连名带姓》',
-    '2024.2.3/4《勇敢》',
-    '2024.2.3/4《Bite me》',
-    '2024.8.10《笼》',
-    '2024.8.25《Paris In The Rain》',
-    '2024.8.25《Senorita》',
-    '2025.5.2《不值得》',
-    '2025.8.30《过》',
-    '2026.2.1《暗香》'
-];
-// 不参与歌词挑战的歌曲索引
-const noChallengeSongs = [2, 4, 7, 10, 12, 13];
-
-// 歌词挑战题库（索引对应 songList）
-const lyricData = {
-    0: { // 泡沫
-        lines: [
-            { text: '美丽的泡沫 虽然一刹____', answer: '花火' },
-            { text: '你所有承诺 虽然都太脆弱', answer: '' },
-            { text: '爱本是泡沫 如果能够看破 有什么____', answer: '难过' },
-            { text: '再美的花朵 盛开过就____', answer: '凋落' },
-            { text: '再亮眼的星 一闪过就坠落', answer: '' }
-        ]
-    },
-    1: { // 改变自己
-        lines: [
-            { text: '我可以改变世界 ____', answer: '改变自己' },
-            { text: '改变隔膜 改变小气', answer: '' },
-            { text: '要一直 努力努力 ____', answer: '永不放弃' },
-            { text: '才可以改变世界 Come on ____', answer: '改变自己' }
-        ]
-    },
-    3: { // 只对你有感觉
-        lines: [
-            { text: '微笑再美再甜 不是你的都不特别', answer: '' },
-            { text: '眼泪再苦再咸 有你安慰又是____', answer: '晴天' },
-            { text: '靠的再近再贴 少了拥抱就算太远', answer: '' },
-            { text: '全世界只对你有____', answer: '感觉' },
-            { text: '玩的再疯再野 你瞪一眼我就____', answer: '收敛' }
-        ]
-    },
-    5: { // 诀爱
-        lines: [
-            { text: '等天崩地裂的那一瞬间', answer: '' },
-            { text: '待坍塌破碎了睁开双眼', answer: '' },
-            { text: '无处安放____ 只能降落', answer: '灵魂' },
-            { text: '拔情诀爱的最后', answer: '' },
-            { text: '指尖缠绕的____', answer: '温柔' },
-            { text: '化作一把锋利剑 刺向了我', answer: '' },
-            { text: '说再见____ 开不了口的惋惜', answer: '来不及' }
-        ]
-    },
-    6: { // 流浪记
-        lines: [
-            { text: '怎样才能够看穿面具里的____', answer: '谎话' },
-            { text: '别让我的真心散的像____', answer: '沙' },
-            { text: '如果有一天我变得更____', answer: '复杂' },
-            { text: '还能不能唱出歌声里的puyuma', answer: '' }
-        ]
-    },
-    8: { // 连名带姓
-        lines: [
-            { text: '再被你提起 已是连名带姓', answer: '' },
-            { text: '谎称是友谊 却疏远得可以', answer: '' },
-            { text: '多少人爱我 偏放不下你', answer: '' },
-            { text: '是公开的____', answer: '秘密' },
-            { text: '算不清多少个____一起过', answer: '跨年夜' },
-            { text: '我且爱且走 其实在等你', answer: '' },
-            { text: '是仅有的____', answer: '默契' }
-        ]
-    },
-    9: { // 勇敢
-        lines: [
-            { text: '是我勇敢太久', answer: '' },
-            { text: '决定为你一个人而活', answer: '' },
-            { text: '不能说出口 那么____', answer: '折磨' },
-            { text: '勇敢了太久 城市充满短暂的____', answer: '烟火' },
-            { text: '无处躲', answer: '' },
-            { text: '照亮了沉默', answer: '' },
-            { text: '明白是____', answer: '寂寞' }
-        ]
-    },
-    11: { // 笼
-        lines: [
-            { text: '为何绚烂 叫人扑空', answer: '' },
-            { text: '为何爱我者予我____', answer: '牢笼' },
-            { text: '为何等待 都徒劳无功', answer: '' },
-            { text: '为何囚人者也像____', answer: '困兽' },
-            { text: '越珍贵 越浪费', answer: '' },
-            { text: '致命的伤 诞生于____', answer: '亲密' }
-        ]
-    },
-    14: { // 不值得
-        lines: [
-            { text: '这感情不值得我犹豫', answer: '' },
-            { text: '不值得我考虑', answer: '' },
-            { text: '不值得我爱过你', answer: '' },
-            { text: '不值得想起', answer: '' },
-            { text: '不值得____', answer: '哭泣' },
-            { text: '这段感情早就应该放弃', answer: '' },
-            { text: '早就不该让我浪费时间找____', answer: '奇迹' },
-            { text: '我决定不为你而____ 放弃爱你', answer: '毁了心' }
-        ]
-    },
-    15: { // 过
-        lines: [
-            { text: '爱情自带寂寞', answer: '' },
-            { text: '爱情各种____', answer: '错过' },
-            { text: '却在多年以后 还想回头', answer: '' },
-            { text: '不见天日的____', answer: '伤口' },
-            { text: '残留的快乐是无底漩涡', answer: '' },
-            { text: '没有如果的____', answer: '结果' },
-            { text: '我来不及说的话在永远里沉没', answer: '' }
-        ]
-    },
-    16: { // 暗香
-        lines: [
-            { text: '当花瓣离开花朵 暗香残留', answer: '' },
-            { text: '如果爱告诉我走下去', answer: '' },
-            { text: '我会拼到____', answer: '爱尽头' },
-            { text: '心若在灿烂中死去', answer: '' },
-            { text: '爱会在灰烬里____', answer: '重生' },
-            { text: '难忘缠绵细语时', answer: '' },
-            { text: '用你笑容为我____', answer: '祭奠' }
-        ]
-    }
-};
-
-// 安全存储：本地文件、隐私模式或禁用 Cookie 时自动降级到内存
+// 本地存储兼容层：隐私模式或部分内嵌浏览器禁用 storage 时自动降级到内存
 const safeStorage = (() => {
     const memory = new Map();
-    try {
-        const nativeStorage = window.localStorage;
-        const testKey = '__jiyu_storage_test__';
-        nativeStorage.setItem(testKey, '1');
-        nativeStorage.removeItem(testKey);
-        return nativeStorage;
-    } catch (error) {
-        console.warn('localStorage 不可用，当前访问将使用临时内存状态', error);
-        return {
-            getItem: key => memory.has(key) ? memory.get(key) : null,
-            setItem: (key, value) => memory.set(key, String(value)),
-            removeItem: key => memory.delete(key),
-            clear: () => memory.clear()
-        };
-    }
+    return {
+        getItem(key) {
+            try { return window.localStorage.getItem(key); }
+            catch (_) { return memory.has(key) ? memory.get(key) : null; }
+        },
+        setItem(key, value) {
+            const text = String(value);
+            try { window.localStorage.setItem(key, text); }
+            catch (_) { memory.set(key, text); }
+        },
+        removeItem(key) {
+            try { window.localStorage.removeItem(key); }
+            catch (_) { memory.delete(key); }
+        }
+    };
 })();
 
-// 全局状态（对本地缓存做容错，避免异常数据让页面初始化失败）
-function readStoredIndexArray(key) {
+// ========== 成员数据 ==========
+const members = [
+    { id: 0, name: '朱志鑫', color: '#FFD700', color2: '#FFA500' },
+    { id: 1, name: '张泽禹', color: '#32CD32', color2: '#228B22' },
+    { id: 2, name: '张极',   color: '#FF8C00', color2: '#FF6347' },
+    { id: 3, name: '左航',   color: '#1E90FF', color2: '#4169E1' },
+    { id: 4, name: '苏新皓', color: '#DC143C', color2: '#B22222' }
+];
+
+// ========== 回忆墙文案 ==========
+const memoryTexts = [
+    '从初次相遇的青涩到如今并肩的模样，六百日星光相伴，五个少年紧紧相依。用心拼凑出专属彼此的圆满，往后无数个朝夕，继续带着热爱并肩向前，奔赴更多闪闪发光的未来。',
+    '车库灯光衬着一身白衣，五个少年肆意鲜活。每一次整齐的律动、默契的对视，都是藏在舞蹈里的热忱。汗水与热爱相伴，舞台之外同样耀眼，带着十足气场起舞，奔赴属于我们的热烈与星光。',
+    '荣耀之夜并肩站上领奖台，五人同举奖杯，挥手迎接属于我们的荣光。舞台上全力以赴的每一刻都有了答案，汗水化作闪闪发光的勋章。往后继续携手前行，带着这份胜利的热烈，奔赴更多更高的顶峰。'
+];
+
+// 唯粉情话库
+const fanWords = {
+    0: ['朱志鑫，你是最耀眼的光！', '鑫光璀璨，只为你而来', '今天也在为朱志鑫心动💛', '朱志鑫往前走，我们在身后', '愿你永远闪闪发光'],
+    1: ['张泽禹，你就是答案！', '禹你同行，岁岁年年', '张小宝永远是最棒的💚', '张泽禹的声音是天籁', '愿你被世界温柔以待'],
+    2: ['张极，极刻心动！', '桔光万里，张极无敌🧡', '张极天生属于舞台', '你的笑容是最美的风景', '极尽全力奔向你'],
+    3: ['左航，航向有你的未来！', '左饺子最帅最酷💙', '左航的rap永远的神', '愿你永远自由如风', '左航值得所有美好'],
+    4: ['苏新皓，皓月当空！', '苏信号永远在舞台中央❤️', '苏新皓就是实力本身', '你的努力我们都看得见', '苏新皓未来可期']
+};
+
+// 应援口号库
+const slogans = {
+    0: ['志在必得，鑫光闪耀！', '朱志鑫，TOP！', '鑫光璀璨，王者归来'],
+    1: ['张泽禹，最强主唱！', '禹你同行，不离不弃！', '泽被万物，禹众不同'],
+    2: ['张极登场，全场沸腾！', '极光闪耀，万丈光芒！', '张极，天生偶像'],
+    3: ['左航一出，谁与争锋！', '航向未来，永不止步！', '左航，实力rapper'],
+    4: ['苏新皓，全能ACE！', '皓月千里，苏你最帅！', '新皓出征，寸草不生']
+};
+
+let selectedCards = [];
+let ferrisController = null;
+let suppressFerrisClick = false;
+let groupUnlockedThisSession = false;
+let groupCollectMode = false;
+
+function readStoredGroupIds() {
     try {
-        const value = JSON.parse(safeStorage.getItem(key) || '[]');
-        if (!Array.isArray(value)) return [];
-        return [...new Set(value.filter(item => Number.isInteger(item) && item >= 0 && item < songList.length))];
+        const value = JSON.parse(safeStorage.getItem('top_group_seen_ids') || '[]');
+        return new Set(Array.isArray(value) ? value.map(Number).filter(Number.isInteger) : []);
     } catch (error) {
-        console.warn(`读取 ${key} 失败，已使用空状态`, error);
-        return [];
+        return new Set();
     }
 }
 
-let unlockedSongs = readStoredIndexArray('jiyu_unlocked');
-let sequenceProgress = Math.min(songList.length, Math.max(0, Number.parseInt(safeStorage.getItem('jiyu_sequence') || '0', 10) || 0));
-let lyricDone = readStoredIndexArray('jiyu_lyric_done');
-let currentSongIndex = -1;
-let lastBgmSrc = 'bite me.ogg';
-let tripleClickTimer = null;
-let tripleClickCount = 0;
-let entranceTimer = null;
-let timelineResizeTimer = null;
+let groupSeenIds = readStoredGroupIds();
 
 // ========== 页面初始化 ==========
 document.addEventListener('DOMContentLoaded', function() {
-    initViewportHeight();
-    initStars();
-    initBigStars();
-    initSongRain();
-    initTypewriter(); 
-    initTimeline();
+    initParticles();
+    initButterflies();
     initMusic();
-    initPhotoClick();
+    initFerrisWheelControls();
+    initPhotoClicks();
+    initGroupEgg();
     initSidebar();
-    initInviteName(); // 新增
-    initLyricChallenge(); // 新增
+    initMessageWall();       // 新增：留言墙
+    initAlbum();             // 新增：相册回忆墙
+    initTypingAnimation();   // 新增：开屏打字机
     initBanquetPage();
-    
-    // 恢复专属背景
-    if (safeStorage.getItem('jiyu_special_bg') === '1') {
-        document.body.classList.add('special-bg');
-    }
-    
-    // 开屏结束显示主页
+
+        // 新郎新娘切换 + hover 光晕
+    document.querySelectorAll('.name-toggle').forEach(el => {
+        el.style.cursor = 'pointer';
+        el.dataset.isGroom = "true";
+        const name = el.dataset.name;
+        el.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const flag = this.dataset.isGroom === "true";
+            this.dataset.isGroom = String(!flag);
+            this.textContent = (flag ? '新娘' : '新郎') + name;
+        });
+    });
+
+    // 开屏结束显示主页面
     setTimeout(() => {
         document.getElementById('splash').style.display = 'none';
         document.getElementById('mainPage').classList.remove('hidden');
-    }, 3500);
+    }, 3000);
 
     // 首次点击播放音乐
     document.body.addEventListener('click', function firstClick() {
@@ -215,809 +113,817 @@ document.addEventListener('DOMContentLoaded', function() {
     }, { once: true });
 });
 
-// ========== 动态视口高度：兼容 iOS/Android 浏览器地址栏与安全区 ==========
-function initViewportHeight() {
-    const updateViewport = () => {
-        const viewportHeight = window.visualViewport?.height || window.innerHeight;
-        document.documentElement.style.setProperty('--app-height', `${Math.round(viewportHeight)}px`);
-    };
-
-    updateViewport();
-    window.addEventListener('resize', updateViewport, { passive: true });
-    window.addEventListener('orientationchange', () => setTimeout(updateViewport, 120), { passive: true });
-    window.visualViewport?.addEventListener('resize', updateViewport, { passive: true });
-}
-
-// ========== 小星星氛围 ==========
-function initStars() {
-    const layer = document.getElementById('starsLayer');
-    for (let i = 0; i < 30; i++) {
+// ========== 星光粒子 ==========
+function initParticles() {
+    const container = document.getElementById('particles');
+    for (let i = 0; i < 40; i++) {
         const star = document.createElement('div');
-        star.className = 'star-item';
-        star.textContent = '✦';
+        star.className = 'star';
         star.style.left = Math.random() * 100 + '%';
-        star.style.top = Math.random() * 100 + '%';
-        star.style.fontSize = (8 + Math.random() * 14) + 'px';
-        star.style.animationDuration = (3 + Math.random() * 4) + 's, ' + (2 + Math.random() * 3) + 's';
-        star.style.animationDelay = Math.random() * 3 + 's, ' + Math.random() * 2 + 's';
-        star.style.opacity = 0.4 + Math.random() * 0.6;
-        layer.appendChild(star);
+        star.style.animationDelay = Math.random() * 3 + 's, ' + (Math.random() * 15) + 's';
+        star.style.animationDuration = (2 + Math.random() * 3) + 's, ' + (10 + Math.random() * 10) + 's';
+        const size = 2 + Math.random() * 3;
+        star.style.width = size + 'px';
+        star.style.height = size + 'px';
+        container.appendChild(star);
     }
 }
 
-// ========== 大际遇星横向飘过 ==========
-function initBigStars() {
-    const layer = document.getElementById('bigStarsLayer');
-    
-    function spawnBigStar() {
-        const star = document.createElement('div');
-        star.className = 'big-star';
-        star.textContent = '✦';
-        star.style.top = (10 + Math.random() * 75) + '%';
-        star.style.fontSize = (22 + Math.random() * 18) + 'px';
-        star.style.animationDuration = (12 + Math.random() * 10) + 's';
-        layer.appendChild(star);
-        setTimeout(() => star.remove(), 22000);
+// ========== 蝴蝶 ==========
+function initButterflies() {
+    const container = document.getElementById('butterflies');
+    for (let i = 0; i < 12; i++) {
+        const bf = document.createElement('div');
+        bf.className = 'butterfly';
+        bf.textContent = '🦋';
+        bf.style.left = Math.random() * 100 + '%';
+        bf.style.top = (100 + Math.random() * 20) + '%';
+        bf.style.fontSize = (16 + Math.random() * 16) + 'px';
+        bf.style.animationDuration = (8 + Math.random() * 10) + 's';
+        bf.style.animationDelay = Math.random() * 8 + 's';
+        bf.style.opacity = 0.6 + Math.random() * 0.3;
+        container.appendChild(bf);
     }
-    
-    for (let i = 0; i < 3; i++) {
-        setTimeout(spawnBigStar, i * 3000);
-    }
-    setInterval(spawnBigStar, 5000);
 }
 
-// ========== 歌曲碎片+花瓣雨 ==========
-function initSongRain() {
-    const layer = document.getElementById('songRain');
+// ========== 音乐控制 ==========
+function initMusic() {
+    const btn = document.getElementById('musicBtn');
+    const music = document.getElementById('bgMusic');
     
-    function spawnCard() {
-        const card = document.createElement('div');
-        card.className = 'song-card';
-        card.textContent = songList[Math.floor(Math.random() * songList.length)];
-        card.style.left = Math.random() * 92 + '%';
-        card.style.animationDuration = (8 + Math.random() * 8) + 's';
-        card.style.fontSize = (10 + Math.random() * 4) + 'px';
-        card.style.opacity = 0.5 + Math.random() * 0.4;
-        const rotateDir = Math.random() > 0.5 ? 1 : -1;
-        card.style.transform = `rotate(${rotateDir * Math.random() * 20}deg)`;
-        layer.appendChild(card);
-        setTimeout(() => card.remove(), 16000);
-    }
-    
-    function spawnPetal() {
-        const petal = document.createElement('div');
-        petal.className = 'rain-petal';
-        const petals = ['🌸', '💮', '💗', '💕'];
-        petal.textContent = petals[Math.floor(Math.random() * petals.length)];
-        petal.style.left = Math.random() * 100 + '%';
-        petal.style.animationDuration = (6 + Math.random() * 6) + 's';
-        petal.style.fontSize = (12 + Math.random() * 10) + 'px';
-        layer.appendChild(petal);
-        setTimeout(() => petal.remove(), 12000);
-    }
-    
-    // 初始生成
-    for (let i = 0; i < 8; i++) {
-        setTimeout(spawnCard, i * 600);
-    }
-    for (let i = 0; i < 5; i++) {
-        setTimeout(spawnPetal, i * 800 + 200);
-    }
-    
-    // 持续生成
-    setInterval(spawnCard, 1200);
-    setInterval(spawnPetal, 1800);
+    btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (music.paused) {
+            music.play();
+            btn.textContent = '🔊';
+            btn.classList.add('playing');
+        } else {
+            music.pause();
+            btn.textContent = '🔇';
+            btn.classList.remove('playing');
+        }
+    });
 }
 
-// ========== 际遇星盘时光轴（自适应圆盘 + 精准连线） ==========
-function initTimeline() {
-    const container = document.getElementById('timelineDots');
-    const modal = document.getElementById('songModal');
-    const songImg = document.getElementById('songImg');
-    const songName = document.getElementById('songName');
-    const closeBtn = document.getElementById('songClose');
-    const challengeBtn = document.getElementById('lyricChallengeBtn');
-
-    const songImgNames = [
-        '泡沫.jpg', '改变自己.jpg', 'Because of you.jpg',
-        '只对你有感觉.jpg', 'R&B all right.jpg', '诀爱.jpg',
-        '流浪记.jpg', 'Rolling In The Deep.jpg', '连名带姓.jpg',
-        '勇敢.jpg', 'Bite me.jpg', '笼.jpg',
-        'Paris In The Rain.jpg', 'Senorita.jpg', '不值得.jpg',
-        '过.jpg', '暗香.jpg'
-    ];
-
-    const center = document.createElement('div');
-    center.className = 'timeline-center';
-    center.textContent = '✦';
-    center.setAttribute('aria-hidden', 'true');
-    container.appendChild(center);
-
-    for (let i = 0; i < songList.length; i++) {
-        const dot = document.createElement('button');
-        dot.type = 'button';
-        dot.className = 'timeline-dot';
-        dot.dataset.index = String(i);
-        dot.setAttribute('aria-label', `第 ${i + 1} 首：${songList[i]}`);
-
-        if (unlockedSongs.includes(i)) dot.classList.add('unlocked');
-        if (lyricDone.includes(i)) dot.classList.add('lyric-complete');
-
-        dot.addEventListener('click', function(e) {
+// ========== 照片点击交互 ==========
+function initPhotoClicks() {
+    const cards = document.querySelectorAll('.photo-card');
+    
+    cards.forEach(card => {
+        card.addEventListener('click', function(e) {
             e.stopPropagation();
-            const idx = Number.parseInt(this.dataset.index, 10);
-            currentSongIndex = idx;
-
-            if (!unlockedSongs.includes(idx)) {
-                unlockedSongs.push(idx);
-                unlockedSongs.sort((a, b) => a - b);
-                safeStorage.setItem('jiyu_unlocked', JSON.stringify(unlockedSongs));
-                this.classList.add('unlocked');
-                updateProgress();
-                updateUnlockCards();
-                checkAllUnlocked();
+            if (suppressFerrisClick) return;
+            const id = parseInt(this.dataset.id);
+            const name = this.dataset.name;
+            const color = this.dataset.color;
+            
+            const groupJustUnlocked = trackGroupClick(id);
+            if (groupJustUnlocked) return;
+            
+            // 点同一张 → 取消选中恢复旋转
+            if (selectedCards.length === 1 && selectedCards[0].id === id) {
+                resumeWheel();
+                clearSelection();
+                hideFanBubble();
+                return;
             }
-
-            if (idx === sequenceProgress) {
-                sequenceProgress = Math.min(songList.length, sequenceProgress + 1);
-                safeStorage.setItem('jiyu_sequence', String(sequenceProgress));
-                drawLines();
-                if (sequenceProgress >= songList.length) unlockSpecialBg();
-            } else if (idx !== sequenceProgress - 1) {
-                this.classList.remove('dot-shake');
-                void this.offsetWidth;
-                this.classList.add('dot-shake');
+            
+            // 点第二张不同的 → CP模式
+            if (selectedCards.length === 1) {
+                const first = selectedCards[0];
+                selectedCards.push({ id, name, color, card: this });
+                triggerCPMode(first, { id, name, color, card: this });
+                return;
             }
-
-            document.querySelectorAll('.timeline-dot.active').forEach(item => item.classList.remove('active'));
-            this.classList.add('active');
-
-            songImg.src = songImgNames[idx];
-            songImg.alt = `${songList[idx]}封面`;
-            songImg.style.display = 'block';
-            songName.textContent = songList[idx];
-            modal.classList.remove('hidden');
-
-            if (noChallengeSongs.includes(idx) || !lyricData[idx]) {
-                challengeBtn.classList.add('hidden');
-            } else {
-                challengeBtn.classList.remove('hidden');
-                const completed = lyricDone.includes(idx);
-                challengeBtn.classList.toggle('done', completed);
-                challengeBtn.textContent = completed ? '已获得星光印记 ★' : '来挑战歌词 ✨';
+            
+            // 选中第一张
+            if (selectedCards.length === 0) {
+                pauseWheel();
+                this.classList.add('selected');
+                selectedCards.push({ id, name, color, card: this });
+                
+                setTimeout(() => {
+                    if (selectedCards.length === 1 && selectedCards[0].id === id) {
+                        triggerFanMode(id, name, color, this);
+                    }
+                }, 350);
             }
         });
-
-        container.appendChild(dot);
-    }
-
-    layoutTimelineWheel();
-    updateTimelineCompletionMarks();
-    drawLines();
-
-    center.addEventListener('dblclick', function(e) {
-        e.stopPropagation();
-        sequenceProgress = 0;
-        safeStorage.setItem('jiyu_sequence', '0');
-        drawLines();
     });
-
-    const closeSongModal = () => {
-        modal.classList.add('hidden');
-        document.querySelectorAll('.timeline-dot.active').forEach(item => item.classList.remove('active'));
-    };
-    closeBtn.addEventListener('click', event => {
-        event.stopPropagation();
-        closeSongModal();
-    });
-    modal.addEventListener('click', event => {
-        if (event.target === modal) closeSongModal();
-    });
-
-    window.addEventListener('resize', () => {
-        clearTimeout(timelineResizeTimer);
-        timelineResizeTimer = setTimeout(() => {
-            layoutTimelineWheel();
-            drawLines();
-        }, 100);
-    }, { passive: true });
-
-    updateProgress();
-    updateUnlockCards();
-    initUnlockScroller();
-}
-
-function layoutTimelineWheel() {
-    const container = document.getElementById('timelineDots');
-    const dots = [...container.querySelectorAll('.timeline-dot')];
-    if (!dots.length) return;
-
-    const size = container.clientWidth || 200;
-    const radius = Math.max(58, size / 2 - Math.max(18, size * 0.085));
-
-    dots.forEach((dot, index) => {
-        const angle = (Math.PI * 2 / dots.length) * index - Math.PI / 2;
-        dot.style.setProperty('--x', `${Math.cos(angle) * radius}px`);
-        dot.style.setProperty('--y', `${Math.sin(angle) * radius}px`);
-    });
-}
-
-// 绘制连线
-function drawLines() {
-    const canvas = document.getElementById('lineCanvas');
-    const container = document.getElementById('timelineDots');
-    const total = songList.length;
-    const size = container.clientWidth || 200;
-    const center = size / 2;
-    const radius = Math.max(58, size / 2 - Math.max(18, size * 0.085));
-
-    canvas.setAttribute('viewBox', `0 0 ${size} ${size}`);
-    canvas.setAttribute('width', String(size));
-    canvas.setAttribute('height', String(size));
-    canvas.replaceChildren();
-
-    const completedSegments = Math.min(Math.max(sequenceProgress - 1, 0), total - 1);
-    for (let i = 0; i < completedSegments; i++) {
-        const angle1 = (Math.PI * 2 / total) * i - Math.PI / 2;
-        const angle2 = (Math.PI * 2 / total) * (i + 1) - Math.PI / 2;
-        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        line.setAttribute('x1', String(center + Math.cos(angle1) * radius));
-        line.setAttribute('y1', String(center + Math.sin(angle1) * radius));
-        line.setAttribute('x2', String(center + Math.cos(angle2) * radius));
-        line.setAttribute('y2', String(center + Math.sin(angle2) * radius));
-        line.style.setProperty('--line-delay', `${i * 45}ms`);
-        canvas.appendChild(line);
-    }
-}
-
-// 更新进度条
-function updateProgress() {
-    const count = unlockedSongs.length;
-    document.getElementById('unlockCount').textContent = count;
-    document.getElementById('progressFill').style.width = (count / 17 * 100) + '%';
-}
-
-// 更新解锁封面栏
-function updateUnlockCards() {
-    const container = document.getElementById('unlockCards');
-    const previousScrollLeft = container.scrollLeft;
-    const songImgNames = [
-        '泡沫.jpg', '改变自己.jpg', 'Because of you.jpg',
-        '只对你有感觉.jpg', 'R&B all right.jpg', '诀爱.jpg',
-        '流浪记.jpg', 'Rolling In The Deep.jpg', '连名带姓.jpg',
-        '勇敢.jpg', 'Bite me.jpg', '笼.jpg',
-        'Paris In The Rain.jpg', 'Senorita.jpg', '不值得.jpg',
-        '过.jpg', '暗香.jpg'
-    ];
-
-    container.replaceChildren();
-    for (let i = 0; i < songList.length; i++) {
-        const unlocked = unlockedSongs.includes(i);
-        const completed = lyricDone.includes(i);
-        const card = document.createElement(unlocked ? 'button' : 'div');
-        if (unlocked) card.type = 'button';
-        card.className = `mini-card${unlocked ? '' : ' locked'}${completed ? ' lyric-complete' : ''}`;
-        card.setAttribute('role', 'listitem');
-
-        if (unlocked) {
-            const title = songList[i].includes('《') ? songList[i].split('《')[1].replace('》', '') : songList[i];
-            card.innerHTML = `
-                <span class="mini-cover-wrap">
-                    <img src="${songImgNames[i]}" alt="${title}封面" loading="lazy">
-                    ${completed ? '<span class="star-stamp" aria-label="歌词挑战已通关">★</span>' : ''}
-                </span>
-                <span class="mini-name">${title}</span>
-            `;
-            card.setAttribute('aria-label', `${title}${completed ? '，歌词挑战已通关' : '，已解锁'}`);
-            card.addEventListener('click', () => {
-                document.querySelectorAll('.timeline-dot')[i]?.click();
-            });
-        } else {
-            card.innerHTML = '<span class="lock-icon">🔒</span><span class="mini-name">待解锁</span>';
-            card.setAttribute('aria-label', `第 ${i + 1} 首歌曲尚未解锁`);
+    
+    // 点击空白恢复
+    document.getElementById('mainPage').addEventListener('click', function(e) {
+        if (e.target.closest('.photo-card') || 
+            e.target.closest('.fan-bubble') ||
+            e.target.closest('.cp-modal') ||
+            e.target.closest('.group-modal') ||
+            e.target.closest('.checkin-modal') ||
+            e.target.closest('.invite-sidebar') ||
+            e.target.closest('button')) return;
+        
+        if (selectedCards.length > 0) {
+            resumeWheel();
+            clearSelection();
+            hideFanBubble();
         }
-
-        container.appendChild(card);
-    }
-
-    requestAnimationFrame(() => {
-        container.scrollLeft = Math.min(previousScrollLeft, Math.max(0, container.scrollWidth - container.clientWidth));
     });
-    updateTimelineCompletionMarks();
+    
+    document.getElementById('cpModal').addEventListener('click', closeCPMode);
 }
 
-function updateTimelineCompletionMarks() {
-    document.querySelectorAll('.timeline-dot').forEach(dot => {
-        const index = Number.parseInt(dot.dataset.index, 10);
-        const completed = lyricDone.includes(index);
-        dot.classList.toggle('lyric-complete', completed);
-        dot.setAttribute('aria-pressed', String(unlockedSongs.includes(index)));
-    });
+function pauseWheel() {
+    document.getElementById('ferrisWheel').classList.add('paused');
+    ferrisController?.setSelectionPaused(true);
+}
+function resumeWheel() {
+    document.getElementById('ferrisWheel').classList.remove('paused');
+    ferrisController?.setSelectionPaused(false);
 }
 
-function initUnlockScroller() {
-    const container = document.getElementById('unlockCards');
-    if (!container || container.dataset.scrollReady === '1') return;
-    container.dataset.scrollReady = '1';
+// ========== 摩天轮：自动旋转 + 鼠标/触屏手动拖动 ==========
+function initFerrisWheelControls() {
+    const container = document.querySelector('.ferris-container');
+    const wheel = document.getElementById('ferrisWheel');
+    const modeBtn = document.getElementById('wheelModeBtn');
+    if (!container || !wheel || !modeBtn) return;
 
-    container.addEventListener('wheel', event => {
-        if (Math.abs(event.deltaY) <= Math.abs(event.deltaX) || container.scrollWidth <= container.clientWidth) return;
-        event.preventDefault();
-        container.scrollLeft += event.deltaY;
-    }, { passive: false });
+    let angle = Number(safeStorage.getItem('top_wheel_angle') || 0);
+    let autoRotate = safeStorage.getItem('top_wheel_auto') !== '0';
+    let selectionPaused = false;
+    let dragging = false;
+    let pointerId = null;
+    let lastX = 0;
+    let lastMoveAt = 0;
+    let dragDistance = 0;
+    let inertia = 0;
+    let lastFrameAt = performance.now();
+    let saveTimer = null;
+    const autoSpeed = 360 / 24000; // 每24秒一圈，单位：度/毫秒
 
-    let isDragging = false;
-    let didDrag = false;
-    let startX = 0;
-    let startScrollLeft = 0;
+    const render = () => {
+        wheel.style.transform = `rotateY(${angle}deg)`;
+    };
+
+    const saveStateSoon = () => {
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(() => {
+            safeStorage.setItem('top_wheel_angle', String(Math.round(angle * 100) / 100));
+            safeStorage.setItem('top_wheel_auto', autoRotate ? '1' : '0');
+        }, 180);
+    };
+
+    const updateModeButton = () => {
+        modeBtn.textContent = autoRotate ? '自动旋转：开' : '自动旋转：关';
+        modeBtn.setAttribute('aria-pressed', autoRotate ? 'false' : 'true');
+        modeBtn.title = autoRotate ? '点击关闭自动旋转，仍可手动滑动' : '点击恢复自动旋转';
+    };
+
+    const endPointer = (event) => {
+        if (!dragging || (pointerId !== null && event.pointerId !== pointerId)) return;
+        dragging = false;
+        container.classList.remove('dragging');
+        try { container.releasePointerCapture(pointerId); } catch (_) {}
+        pointerId = null;
+        if (dragDistance > 7) {
+            suppressFerrisClick = true;
+            setTimeout(() => { suppressFerrisClick = false; }, 160);
+        }
+        saveStateSoon();
+    };
 
     container.addEventListener('pointerdown', event => {
-        if (event.pointerType === 'touch') return;
-        isDragging = true;
-        didDrag = false;
-        startX = event.clientX;
-        startScrollLeft = container.scrollLeft;
+        if (event.pointerType === 'mouse' && event.button !== 0) return;
+        if (event.target.closest('.wheel-controls')) return;
+        dragging = true;
+        pointerId = event.pointerId;
+        lastX = event.clientX;
+        lastMoveAt = performance.now();
+        dragDistance = 0;
+        inertia = 0;
         container.classList.add('dragging');
-        container.setPointerCapture?.(event.pointerId);
+        try { container.setPointerCapture(pointerId); } catch (_) {}
     });
 
     container.addEventListener('pointermove', event => {
-        if (!isDragging) return;
-        const distance = event.clientX - startX;
-        if (Math.abs(distance) > 4) didDrag = true;
-        container.scrollLeft = startScrollLeft - distance;
+        if (!dragging || event.pointerId !== pointerId) return;
+        const now = performance.now();
+        const dx = event.clientX - lastX;
+        const dt = Math.max(8, now - lastMoveAt);
+        dragDistance += Math.abs(dx);
+        angle += dx * 0.48;
+        inertia = (dx * 0.48) / dt;
+        lastX = event.clientX;
+        lastMoveAt = now;
+        render();
     });
 
-    const finishDrag = event => {
-        if (!isDragging) return;
-        isDragging = false;
-        container.classList.remove('dragging');
-        if (container.hasPointerCapture?.(event.pointerId)) container.releasePointerCapture(event.pointerId);
-    };
-    container.addEventListener('pointerup', finishDrag);
-    container.addEventListener('pointercancel', finishDrag);
-    container.addEventListener('click', event => {
-        if (!didDrag) return;
+    container.addEventListener('pointerup', endPointer);
+    container.addEventListener('pointercancel', endPointer);
+    container.addEventListener('lostpointercapture', endPointer);
+
+    container.addEventListener('wheel', event => {
+        if (Math.abs(event.deltaX) < Math.abs(event.deltaY) && !event.shiftKey) return;
         event.preventDefault();
+        angle -= (event.deltaX || event.deltaY) * 0.18;
+        inertia = 0;
+        render();
+        saveStateSoon();
+    }, { passive: false });
+
+    modeBtn.addEventListener('click', event => {
         event.stopPropagation();
-        didDrag = false;
-    }, true);
+        autoRotate = !autoRotate;
+        inertia = 0;
+        updateModeButton();
+        saveStateSoon();
+    });
+
+    function tick(now) {
+        const dt = Math.min(48, now - lastFrameAt);
+        lastFrameAt = now;
+        if (!dragging && !selectionPaused) {
+            if (autoRotate) {
+                angle += autoSpeed * dt;
+            } else if (Math.abs(inertia) > 0.0008) {
+                angle += inertia * dt;
+                inertia *= Math.pow(0.91, dt / 16.67);
+            }
+            render();
+        }
+        requestAnimationFrame(tick);
+    }
+
+    ferrisController = {
+        setSelectionPaused(value) { selectionPaused = Boolean(value); },
+        isAutoRotate() { return autoRotate; }
+    };
+
+    render();
+    updateModeButton();
+    requestAnimationFrame(tick);
+}
+function clearSelection() {
+    document.querySelectorAll('.photo-card').forEach(c => c.classList.remove('selected'));
+    selectedCards = [];
+}
+function hideFanBubble() {
+    document.getElementById('fanBubble').classList.add('hidden');
 }
 
-// 检查是否全部解锁
-function checkAllUnlocked() {
-    if (unlockedSongs.length === 17) {
-        triggerFullEaster();
+// ========== 唯粉模式 ==========
+function triggerFanMode(id, name, color, card) {
+    const mode = Math.floor(Math.random() * 3);
+    
+    if (mode === 0) {
+        const words = fanWords[id];
+        showFanBubble(words[Math.floor(Math.random() * words.length)]);
+    } else if (mode === 1) {
+        const slogan = slogans[id];
+        showFanBubble('📣 ' + slogan[Math.floor(Math.random() * slogan.length)]);
+    } else {
+        burstHearts(card, color);
     }
 }
 
-// 解锁专属背景
-function unlockSpecialBg() {
-    document.body.classList.add('special-bg');
-    safeStorage.setItem('jiyu_special_bg', '1');
+function showFanBubble(text) {
+    const bubble = document.getElementById('fanBubble');
+    document.getElementById('fanText').textContent = text;
+    bubble.classList.remove('hidden');
+    bubble.style.animation = 'none';
+    bubble.offsetHeight;
+    bubble.style.animation = '';
+    
+    clearTimeout(showFanBubble.timer);
+    showFanBubble.timer = setTimeout(() => bubble.classList.add('hidden'), 3000);
+}
+
+function burstHearts(card, color) {
+    const rect = card.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    
+    const container = document.createElement('div');
+    container.className = 'heart-burst';
+    container.style.left = centerX + 'px';
+    container.style.top = centerY + 'px';
+    document.body.appendChild(container);
+    
+    for (let i = 0; i < 15; i++) {
+        const heart = document.createElement('div');
+        heart.className = 'flying-heart';
+        heart.textContent = '❤️';
+        const angle = (Math.PI * 2 / 15) * i + Math.random() * 0.5;
+        const distance = 80 + Math.random() * 100;
+        heart.style.setProperty('--tx', Math.cos(angle) * distance + 'px');
+        heart.style.setProperty('--ty', Math.sin(angle) * distance + 'px');
+        heart.style.animationDelay = Math.random() * 0.3 + 's';
+        container.appendChild(heart);
+    }
+    setTimeout(() => container.remove(), 2500);
+}
+
+// ========== CP模式 ==========
+function triggerCPMode(first, second) {
+    const leftEl = document.getElementById('cpLeft');
+    const rightEl = document.getElementById('cpRight');
+    const nameplate = document.getElementById('cpNameplate');
+    
+    leftEl.style.background = `linear-gradient(135deg, ${first.color}, ${members[first.id].color2})`;
+    rightEl.style.background = `linear-gradient(135deg, ${second.color}, ${members[second.id].color2})`;
+    
+    const firstImg = first.card.querySelector('img');
+    const secondImg = second.card.querySelector('img');
+    if (firstImg && firstImg.src && firstImg.style.display !== 'none') {
+        leftEl.style.backgroundImage = `url(${firstImg.src})`;
+        leftEl.style.backgroundSize = 'cover';
+        leftEl.style.backgroundPosition = 'center';
+    }
+    if (secondImg && secondImg.src && secondImg.style.display !== 'none') {
+        rightEl.style.backgroundImage = `url(${secondImg.src})`;
+        rightEl.style.backgroundSize = 'cover';
+        rightEl.style.backgroundPosition = 'center';
+    }
+    
+    nameplate.textContent = `${first.name} & ${second.name}`;
+    nameplate.style.background = `linear-gradient(90deg, ${first.color}, ${second.color})`;
+    
+    document.getElementById('cpModal').classList.remove('hidden');
+    setTimeout(() => triggerFlash(), 600);
+    spawnPetals(first.color, second.color);
+    
+    clearTimeout(triggerCPMode.timer);
+    triggerCPMode.timer = setTimeout(closeCPMode, 2500);
+}
+
+function closeCPMode() {
+    document.getElementById('cpModal').classList.add('hidden');
+    clearSelection();
+    resumeWheel();
+    document.getElementById('cpPetals').innerHTML = '';
+}
+
+function triggerFlash() {
+    const flash = document.getElementById('flashLayer');
+    flash.classList.add('active');
+    setTimeout(() => flash.classList.remove('active'), 100);
+}
+
+function spawnPetals() {
+    const container = document.getElementById('cpPetals');
+    container.innerHTML = '';
+    for (let i = 0; i < 25; i++) {
+        const petal = document.createElement('div');
+        petal.className = 'petal';
+        petal.textContent = Math.random() > 0.5 ? '🌸' : '💮';
+        petal.style.left = Math.random() * 100 + '%';
+        petal.style.animationDuration = (2 + Math.random() * 2) + 's';
+        petal.style.animationDelay = Math.random() * 1.5 + 's';
+        petal.style.fontSize = (14 + Math.random() * 10) + 'px';
+        container.appendChild(petal);
+    }
+}
+
+// ========== 请柬侧边栏 ==========
+function initSidebar() {
+    document.getElementById('inviteBtn').addEventListener('click', function(e) {
+        e.stopPropagation();
+        document.getElementById('inviteSidebar').classList.toggle('open');
+    });
+    document.getElementById('inviteClose').addEventListener('click', function(e) {
+        e.stopPropagation();
+        document.getElementById('inviteSidebar').classList.remove('open');
+    });
+    const inviteeInput = document.getElementById('inviteeInput');
+    const saved = safeStorage.getItem('top_invitee_name');
+    if (saved) inviteeInput.value = saved;
+    inviteeInput.addEventListener('input', function() {
+         safeStorage.setItem('top_invitee_name', this.value);
+});
 }
 
 // ========== 开屏打字机动画 ==========
-function initTypewriter() {
+function initTypingAnimation() {
     const text = '欢迎来到我们的婚礼星球';
-    const el = document.getElementById('splashTypewriter');
-    const sub = document.getElementById('splashSub');
-    if (!el) return;
+    const target = document.getElementById('typingText');
     let i = 0;
-
-    function type() {
+    // 延迟 1 秒后开始打字，配合弧形文字出现
+    setTimeout(function type() {
         if (i < text.length) {
-            el.innerHTML = `${text.substring(0, i + 1)}<span class="typewriter-cursor"></span>`;
-            i += 1;
-            setTimeout(type, 180);
-            return;
+            target.textContent += text.charAt(i);
+            i++;
+            setTimeout(type, 160);
         }
-        setTimeout(() => sub?.classList.remove('hidden'), 220);
-    }
-
-    setTimeout(type, 520);
+    }, 1000);
 }
 
-// ========== 请柬昵称功能 ==========
-function initInviteName() {
-    const input = document.getElementById('hostNameInput');
-    const saved = safeStorage.getItem('jiyu_host_name');
-    if (saved) input.value = saved;
-    
-    input.addEventListener('blur', function() {
-        safeStorage.setItem('jiyu_host_name', this.value);
-    });
-    
-    input.addEventListener('click', e => e.stopPropagation());
-}
+// ========== 留言墙 ==========
+function initMessageWall() {
+    const btn = document.getElementById('messageBtn');
+    const modal = document.getElementById('messageModal');
+    const input = document.getElementById('messageInput');
+    const countEl = document.getElementById('msgCount');
+    const cancelBtn = document.getElementById('msgCancel');
+    const submitBtn = document.getElementById('msgSubmit');
+    const floatContainer = document.getElementById('floatingMessages');
 
-// ========== 歌词挑战 ==========
-function initLyricChallenge() {
-    const modal = document.getElementById('lyricModal');
-    const content = document.getElementById('lyricContent');
-    const result = document.getElementById('lyricResult');
-    const submitBtn = document.getElementById('lyricSubmit');
-    const retryBtn = document.getElementById('lyricRetry');
-    const closeBtn = document.getElementById('lyricClose');
-    const challengeBtn = document.getElementById('lyricChallengeBtn');
-    
-    challengeBtn.addEventListener('click', function(e) {
+    btn.addEventListener('click', function(e) {
         e.stopPropagation();
-        if (lyricDone.includes(currentSongIndex)) return;
-        openLyricModal();
-    });
-    
-    function openLyricModal() {
-        const data = lyricData[currentSongIndex];
-        content.innerHTML = '';
-        result.textContent = '';
-        submitBtn.classList.remove('hidden');
-        retryBtn.classList.add('hidden');
-        
-        data.lines.forEach((line, idx) => {
-            const p = document.createElement('p');
-            p.className = 'lyric-line';
-            
-            if (line.answer) {
-                p.innerHTML = line.text.replace('____', 
-                    `<input type="text" class="lyric-blank" data-answer="${line.answer}" maxlength="6">`);
-            } else {
-                p.textContent = line.text;
-            }
-            
-            content.appendChild(p);
-        });
-        
         modal.classList.remove('hidden');
-    }
-    
-    submitBtn.addEventListener('click', function() {
-        const inputs = document.querySelectorAll('.lyric-blank');
-        let allCorrect = true;
-        
-        inputs.forEach(input => {
-            const correct = input.dataset.answer;
-            const val = input.value.trim();
-            
-            if (val === correct) {
-                input.classList.add('correct');
-                input.classList.remove('wrong');
-            } else {
-                input.classList.add('wrong');
-                input.classList.remove('correct');
-                allCorrect = false;
-            }
-        });
-        
-        if (allCorrect) {
-            result.textContent = '✨ 答对啦！星光印记已点亮 ✨';
-            result.style.color = '#48a87e';
-            submitBtn.classList.add('hidden');
-            retryBtn.classList.add('hidden');
-            
-            // 标记完成
-            if (!lyricDone.includes(currentSongIndex)) {
-                lyricDone.push(currentSongIndex);
-                safeStorage.setItem('jiyu_lyric_done', JSON.stringify(lyricDone));
-                challengeBtn.classList.add('done');
-                challengeBtn.textContent = '已获得星光印记 ★';
-            }
-
-            updateTimelineCompletionMarks();
-            updateUnlockCards();
-            const activeDot = document.querySelector(`.timeline-dot[data-index="${currentSongIndex}"]`);
-            activeDot?.classList.add('completion-pop');
-            setTimeout(() => activeDot?.classList.remove('completion-pop'), 900);
-
-            // 星光动画
-            burstStarlight();
-        } else {
-            result.textContent = '还差一点点哦，再试试吧~';
-            result.style.color = '#d9534f';
-            submitBtn.classList.add('hidden');
-            retryBtn.classList.remove('hidden');
-        }
+        input.value = '';
+        countEl.textContent = '0';
+        setTimeout(() => input.focus(), 100);
     });
-    
-    retryBtn.addEventListener('click', function() {
-        openLyricModal();
+
+    // 字数统计
+    input.addEventListener('input', function() {
+        countEl.textContent = this.value.length;
     });
-    
-    closeBtn.addEventListener('click', e => {
+
+    // 取消
+    cancelBtn.addEventListener('click', function(e) {
         e.stopPropagation();
         modal.classList.add('hidden');
     });
-    modal.addEventListener('click', e => {
+
+    // 提交
+    submitBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const msg = input.value.trim();
+        if (!msg) {
+            input.focus();
+            return;
+        }
+        spawnFloatingMessage(msg);
+        modal.classList.add('hidden');
+    });
+
+    // 点击遮罩关闭
+    modal.addEventListener('click', function(e) {
         if (e.target === modal) modal.classList.add('hidden');
     });
 }
 
-// 答对星光特效
-function burstStarlight() {
-    const container = document.getElementById('heartBurst');
-    for (let i = 0; i < 30; i++) {
-        const s = document.createElement('div');
-        s.className = 'burst-heart';
-        s.textContent = '✨';
-        s.style.left = '50%';
-        s.style.top = '50%';
-        
-        const angle = Math.random() * Math.PI * 2;
-        const dist = 60 + Math.random() * 100;
-        s.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
-        s.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
-        s.style.animationDelay = Math.random() * 0.3 + 's';
-        s.style.fontSize = (14 + Math.random() * 10) + 'px';
-        
-        container.appendChild(s);
-        setTimeout(() => s.remove(), 2000);
-    }
+function spawnFloatingMessage(text) {
+    const container = document.getElementById('floatingMessages');
+    const msg = document.createElement('div');
+    msg.className = 'float-msg';
+    msg.textContent = text;
+    // 随机水平位置（左右两侧区域，避开中间摩天轮）
+    const side = Math.random() > 0.5 ? 'left' : 'right';
+    const baseX = side === 'left' ? 5 + Math.random() * 20 : 75 + Math.random() * 20;
+    msg.style.left = baseX + '%';
+    // 随机颜色（五个应援色）
+    const colors = ['#FFD700', '#32CD32', '#FF8C00', '#1E90FF', '#DC143C'];
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    msg.style.color = color;
+    msg.style.animationDuration = (7 + Math.random() * 3) + 's';
+    // 随机字号
+    msg.style.fontSize = (13 + Math.random() * 4) + 'px';
+    container.appendChild(msg);
+    setTimeout(() => msg.remove(), 10000);
 }
 
-// ========== 全屏彩蛋（修复关闭问题 + 4秒自动关闭） ==========
-let easterCloseTimer = null;
+// ========== 相册回忆墙（修改：移除大图查看，切换自动显示文案） ==========
+let currentAlbumIndex = 0;
+const totalAlbums = 3;
+let albumAutoTimer = null;
 
-function triggerFullEaster() {
-    const modal = document.getElementById('easterModal');
-    const music = document.getElementById('bgMusic');
-    
-    // 先清除之前的定时器，避免重复触发
-    if (easterCloseTimer) clearTimeout(easterCloseTimer);
-    
-    // 记录当前BGM并切换
-    lastBgmSrc = music.src.split('/').pop();
-    music.src = '流浪记.ogg';
-    music.volume = 0.6;
-    music.play().catch(() => {});
-    
-    // 显示彩蛋
-    modal.classList.remove('hidden');
-    startFireworks();
-    
-    // 关闭函数
-    function closeEaster() {
-        if (easterCloseTimer) clearTimeout(easterCloseTimer);
-        modal.classList.add('hidden');
-        // 恢复原BGM
-        music.src = lastBgmSrc;
-        music.volume = 1;
-        music.play().catch(() => {});
-    }
-    
-    // 4秒后自动关闭
-    easterCloseTimer = setTimeout(closeEaster, 8000);
-    
-    // 点击任意处关闭（只绑定一次）
-    modal.onclick = closeEaster;
-}
+function initAlbum() {
+    const btn = document.getElementById('albumBtn');
+    const modal = document.getElementById('albumModal');
+    const closeBtn = document.getElementById('albumClose');
+    const prevBtn = document.getElementById('albumPrev');
+    const nextBtn = document.getElementById('albumNext');
+    const track = document.getElementById('albumTrack');
+    const dots = document.querySelectorAll('#albumDots .dot');
+    const slides = document.querySelectorAll('.album-slide');
+    const captions = document.querySelectorAll('.slide-caption');
 
-// 烟花动画
-function startFireworks() {
-    const container = document.getElementById('fireworksContainer');
-    const colors = ['#ffb8d1', '#ff94b8', '#fff0f5', '#ffd6e5', '#ffc8dd', '#ffffff'];
-    
-    function launchFirework() {
-        const x = Math.random() * 100;
-        const y = 20 + Math.random() * 50;
-        
-        for (let i = 0; i < 30; i++) {
-            const p = document.createElement('div');
-            p.className = 'firework';
-            p.style.left = x + '%';
-            p.style.top = y + '%';
-            p.style.background = colors[Math.floor(Math.random() * colors.length)];
-            p.style.boxShadow = `0 0 6px ${p.style.background}`;
-            
-            const angle = (Math.PI * 2 / 30) * i;
-            const dist = 40 + Math.random() * 40;
-            p.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
-            p.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
-            p.style.animationDelay = Math.random() * 0.2 + 's';
-            
-            container.appendChild(p);
-            setTimeout(() => p.remove(), 1800);
-        }
-    }
-    
-    // 持续放烟花
-    const timer = setInterval(launchFirework, 800);
-    // 10秒后停止
-    setTimeout(() => clearInterval(timer), 10000);
-}
-
-// ========== 音乐选择器 ==========
-function initMusic() {
-    const btn = document.getElementById('musicBtn');
-    const menu = document.getElementById('musicMenu');
-    const music = document.getElementById('bgMusic');
-    const items = document.querySelectorAll('.menu-item');
-    
+    // 打开相册
     btn.addEventListener('click', function(e) {
         e.stopPropagation();
-        menu.classList.toggle('hidden');
+        modal.classList.remove('hidden');
+        fillCurrentCaption();
+        startAlbumAutoPlay();
     });
-    
-    items.forEach(item => {
-        item.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const src = this.dataset.src;
-            
-            items.forEach(i => i.classList.remove('active'));
-            this.classList.add('active');
-            
-            music.src = src;
-            music.play();
-            btn.classList.add('playing');
-            menu.classList.add('hidden');
-        });
-    });
-    
-    document.addEventListener('click', function() {
-        if (!menu.classList.contains('hidden')) {
-            menu.classList.add('hidden');
-        }
-    });
-}
 
-// ========== 合照点击 + 三击彩蛋 ==========
-function initPhotoClick() {
-    const photo = document.getElementById('couplePhoto');
-    
-    photo.addEventListener('click', function(e) {
-        const rect = photo.getBoundingClientRect();
-        const cx = rect.left + rect.width / 2;
-        const cy = rect.top + rect.height / 2;
-        
-        // 三击检测
-        tripleClickCount++;
-        clearTimeout(tripleClickTimer);
-        tripleClickTimer = setTimeout(() => {
-            tripleClickCount = 0;
-        }, 800);
-        
-        if (tripleClickCount >= 2) {
-            tripleClickCount = 0;
-            triggerEaster();
-            return;
-        }
-        
-        burstHearts(cx, cy);
-    });
-}
-
-function burstHearts(cx, cy) {
-    const container = document.getElementById('heartBurst');
-    const hearts = ['💗', '💕', '💖', '💝', '🌸', '✨'];
-    
-    for (let i = 0; i < 20; i++) {
-        const h = document.createElement('div');
-        h.className = 'burst-heart';
-        h.textContent = hearts[Math.floor(Math.random() * hearts.length)];
-        h.style.left = cx + 'px';
-        h.style.top = cy + 'px';
-        
-        const angle = (Math.PI * 2 / 20) * i + Math.random() * 0.4;
-        const dist = 80 + Math.random() * 120;
-        h.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
-        h.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
-        h.style.animationDelay = Math.random() * 0.3 + 's';
-        h.style.fontSize = (16 + Math.random() * 14) + 'px';
-        
-        container.appendChild(h);
-        setTimeout(() => h.remove(), 2500);
-    }
-}
-
-// ========== 三击彩 ==========
-// 原三击彩蛋保留，触发全屏彩蛋
-function triggerEaster() {
-    triggerFullEaster();
-}
-// ========== 请柬侧边栏 ==========
-function initSidebar() {
-    const btn = document.getElementById('inviteBtn');
-    const sidebar = document.getElementById('inviteSidebar');
-    const closeBtn = document.getElementById('inviteClose');
-    
-    btn.addEventListener('click', function(e) {
-        e.stopPropagation();
-        sidebar.classList.toggle('open');
-    });
-    
+    // 关闭相册
     closeBtn.addEventListener('click', function(e) {
         e.stopPropagation();
-        sidebar.classList.remove('open');
+        closeAlbum();
+    });
+
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) closeAlbum();
+    });
+
+    // 左右切换
+    prevBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        prevAlbum();
+        resetAlbumTimer();
+    });
+
+    nextBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        nextAlbum();
+        resetAlbumTimer();
+    });
+
+    // 指示点切换
+    dots.forEach((dot, idx) => {
+        dot.addEventListener('click', function(e) {
+            e.stopPropagation();
+            goToAlbum(idx);
+            resetAlbumTimer();
+        });
+    });
+
+    // 滑动手势
+    initAlbumSwipe(track);
+}
+
+// 填充当前幻灯片文案
+function fillCurrentCaption() {
+    const captions = document.querySelectorAll('.slide-caption');
+    captions.forEach((cap, idx) => {
+        cap.textContent = memoryTexts[idx];
     });
 }
 
-function spawnPetalConfetti() {
-    const container = document.getElementById('petalBurst');
-    const items = ['🌸', '💮', '💗', '💕', '✨'];
-    const colors = ['#ffb8d1', '#ff94b8', '#ffd6e5', '#fff0f5', '#ffc8dd'];
-    
-    for (let i = 0; i < 50; i++) {
-        const p = document.createElement('div');
-        p.className = 'confetti-petal';
-        p.textContent = items[Math.floor(Math.random() * items.length)];
-        p.style.left = Math.random() * 100 + '%';
-        p.style.animationDuration = (2 + Math.random() * 2) + 's';
-        p.style.animationDelay = Math.random() * 0.5 + 's';
-        p.style.fontSize = (12 + Math.random() * 14) + 'px';
-        container.appendChild(p);
-        setTimeout(() => p.remove(), 4500);
+function closeAlbum() {
+    document.getElementById('albumModal').classList.add('hidden');
+    stopAlbumAutoPlay();
+}
+
+function updateAlbumDisplay() {
+    const track = document.getElementById('albumTrack');
+    const dots = document.querySelectorAll('#albumDots .dot');
+    track.style.transform = `translateX(-${currentAlbumIndex * 100}%)`;
+    dots.forEach((d, i) => d.classList.toggle('active', i === currentAlbumIndex));
+}
+
+function nextAlbum() {
+    currentAlbumIndex = (currentAlbumIndex + 1) % totalAlbums;
+    updateAlbumDisplay();
+}
+
+function prevAlbum() {
+    currentAlbumIndex = (currentAlbumIndex - 1 + totalAlbums) % totalAlbums;
+    updateAlbumDisplay();
+}
+
+function goToAlbum(idx) {
+    currentAlbumIndex = idx;
+    updateAlbumDisplay();
+}
+
+function startAlbumAutoPlay() {
+    stopAlbumAutoPlay();
+    albumAutoTimer = setInterval(nextAlbum, 3500);
+}
+
+function stopAlbumAutoPlay() {
+    if (albumAutoTimer) {
+        clearInterval(albumAutoTimer);
+        albumAutoTimer = null;
     }
 }
 
-// 清空解锁记录
-document.getElementById('resetBtn').addEventListener('click', function() {
-    if (!confirm('确定要清空所有解锁记录、连线进度、歌词通关记录吗？')) return;
-    
-    safeStorage.removeItem('jiyu_unlocked');
-    safeStorage.removeItem('jiyu_sequence');
-    safeStorage.removeItem('jiyu_lyric_done');
-    safeStorage.removeItem('jiyu_special_bg');
-    
-    alert('已清空所有记录！页面即将刷新');
-    location.reload();
-});
+function resetAlbumTimer() {
+    startAlbumAutoPlay();
+}
 
-// ====================== 婚宴页面｜JSONBin云端座位同步 ======================
-const BIN_ID = "6a562594da38895dfe5ba70a";
-const ACCESS_KEY = "$2a$10$WvSYWhjxICFpZAf3.cxEbe/3BjIz1sFB22Pjqnq4uLBJawRI.pR0G";
+// 触屏滑动
+function initAlbumSwipe(track) {
+    let startX = 0;
+    let moveX = 0;
+    let isDragging = false;
 
-// 用户唯一ID
-let userId = safeStorage.getItem("jiyu_star_user_id");
+    track.addEventListener('touchstart', function(e) {
+        startX = e.touches[0].clientX;
+        isDragging = true;
+        stopAlbumAutoPlay();
+    }, { passive: true });
+
+    track.addEventListener('touchmove', function(e) {
+        if (!isDragging) return;
+        moveX = e.touches[0].clientX - startX;
+    }, { passive: true });
+
+    track.addEventListener('touchend', function() {
+        if (!isDragging) return;
+        isDragging = false;
+        if (Math.abs(moveX) > 50) {
+            if (moveX > 0) prevAlbum();
+            else nextAlbum();
+        }
+        moveX = 0;
+        startAlbumAutoPlay();
+    });
+}
+
+// ========== 五人同框彩蛋：逐个点亮，永久解锁 ==========
+function initGroupEgg() {
+    const button = document.getElementById('groupEggBtn');
+    const modal = document.getElementById('groupModal');
+    const closeBtn = document.getElementById('groupClose');
+    if (!button || !modal) return;
+
+    updateGroupProgress();
+
+    button.addEventListener('click', event => {
+        event.stopPropagation();
+        if (groupSeenIds.size >= members.length || safeStorage.getItem('top_group_unlocked') === '1') {
+            triggerGroupMode();
+        } else {
+            groupCollectMode = !groupCollectMode;
+            updateGroupProgress();
+            const remaining = members.length - groupSeenIds.size;
+            showFanBubble(groupCollectMode
+                ? `点亮模式已开启：依次点击剩余 ${remaining} 位成员 ✨`
+                : '已退出点亮模式，照片恢复普通互动');
+        }
+    });
+
+    closeBtn?.addEventListener('click', event => {
+        event.stopPropagation();
+        closeGroupMode();
+    });
+
+    modal.addEventListener('click', event => {
+        if (event.target === modal) closeGroupMode();
+    });
+
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && !modal.classList.contains('hidden')) closeGroupMode();
+    });
+}
+
+function updateGroupProgress() {
+    const progress = document.getElementById('groupProgress');
+    const label = document.getElementById('groupEggLabel');
+    const button = document.getElementById('groupEggBtn');
+    document.querySelectorAll('.photo-card').forEach(card => {
+        card.classList.toggle('group-collected', groupSeenIds.has(Number(card.dataset.id)));
+    });
+    if (progress) progress.textContent = `${Math.min(groupSeenIds.size, members.length)}/${members.length}`;
+    const unlocked = groupSeenIds.size >= members.length || safeStorage.getItem('top_group_unlocked') === '1';
+    button?.classList.toggle('unlocked', unlocked);
+    button?.classList.toggle('collecting', groupCollectMode && !unlocked);
+    if (label) label.textContent = unlocked ? '✨ 五人彩蛋已解锁' : (groupCollectMode ? '⭐ 正在点亮成员' : '✨ 五人彩蛋');
+    if (button) button.setAttribute('aria-label', unlocked ? '五人彩蛋已解锁，点击打开' : (groupCollectMode ? '点亮模式已开启，点击可退出' : '开启五人彩蛋点亮模式'));
+}
+
+function trackGroupClick(id) {
+    if (!groupSeenIds.has(id)) {
+        groupSeenIds.add(id);
+        safeStorage.setItem('top_group_seen_ids', JSON.stringify([...groupSeenIds]));
+        updateGroupProgress();
+        const member = members.find(item => item.id === id);
+        showFanBubble(`已点亮 ${member?.name || '一位成员'} · ${groupSeenIds.size}/${members.length}`);
+    }
+
+    if (groupSeenIds.size >= members.length && safeStorage.getItem('top_group_unlocked') !== '1') {
+        safeStorage.setItem('top_group_unlocked', '1');
+        groupUnlockedThisSession = true;
+        groupCollectMode = false;
+        updateGroupProgress();
+        clearSelection();
+        setTimeout(triggerGroupMode, 450);
+        return true;
+    }
+    return groupCollectMode;
+}
+
+function triggerGroupMode() {
+    const modal = document.getElementById('groupModal');
+    if (!modal) return;
+    clearSelection();
+    hideFanBubble();
+    pauseWheel();
+    modal.classList.remove('hidden');
+    spawnFireworks();
+}
+
+function closeGroupMode() {
+    document.getElementById('groupModal')?.classList.add('hidden');
+    clearSelection();
+    resumeWheel();
+}
+
+function spawnFireworks() {
+    const container = document.getElementById('fireworks');
+    if (!container) return;
+    container.innerHTML = '';
+    for (let b = 0; b < 6; b++) {
+        setTimeout(() => {
+            const cx = 14 + Math.random() * 72;
+            const cy = 15 + Math.random() * 55;
+            const color = members[b % members.length].color;
+            for (let i = 0; i < 22; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'firework';
+                particle.style.left = cx + '%';
+                particle.style.top = cy + '%';
+                particle.style.background = color;
+                particle.style.boxShadow = `0 0 7px ${color}`;
+                const angle = (Math.PI * 2 / 22) * i;
+                const distance = 58 + Math.random() * 72;
+                particle.style.setProperty('--fx', Math.cos(angle) * distance + 'px');
+                particle.style.setProperty('--fy', Math.sin(angle) * distance + 'px');
+                container.appendChild(particle);
+                setTimeout(() => particle.remove(), 1900);
+            }
+        }, b * 310);
+    }
+}
+
+// ====================== 婚宴席位页面逻辑｜JSONBin云端座位 ======================
+const BIN_ID = "6a561387f5f4af5e298cec09";
+const MASTER_KEY = "$2a$10$WvSYWhjxICFpZAf3.cxEbe/3BjIz1sFB22Pjqnq4uLBJawRI.pR0G";
+const TABLE_IDS = ['left1', 'left2', 'left3', 'right1', 'right2', 'right3'];
+
+const tableEmojiMap = {
+    left1: "🦋",
+    left2: "🐱",
+    left3: "🐷",
+    right1: "🐶",
+    right2: "😺",
+    right3: "🐰"
+};
+
+let userId = safeStorage.getItem("wedding_user_id");
 if (!userId) {
     userId = "u_" + Math.random().toString(36).slice(2) + Date.now().toString(36);
-    safeStorage.setItem("jiyu_star_user_id", userId);
+    safeStorage.setItem("wedding_user_id", userId);
 }
 
 let seatData = null;
 let pendingSeat = null;
+let entranceAnimation = null;
+let entranceFinishTimer = null;
+let resizeSeatTimer = null;
 
-// 云端读取座位
-async function loadRemoteSeat() {
+function createEmptySeatData() {
+    return { seats: Object.fromEntries(TABLE_IDS.map(id => [id, Array(8).fill(null)])) };
+}
+
+function normalizeSeatData(data) {
+    const normalized = data && typeof data === 'object' ? data : createEmptySeatData();
+    if (!normalized.seats || typeof normalized.seats !== 'object') normalized.seats = {};
+    TABLE_IDS.forEach(id => {
+        const source = Array.isArray(normalized.seats[id]) ? normalized.seats[id].slice(0, 8) : [];
+        while (source.length < 8) source.push(null);
+        normalized.seats[id] = source;
+    });
+    return normalized;
+}
+
+async function loadRemoteSeat({ silent = false } = {}) {
     try {
-        const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`);
-        if (!res.ok) throw new Error("读取失败");
-        const json = await res.json();
-        seatData = json.record;
-        safeStorage.setItem("seatBackup", JSON.stringify(seatData));
+        const response = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, { cache: 'no-store' });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const json = await response.json();
+        seatData = normalizeSeatData(json.record);
+        safeStorage.setItem("localSeatBackup", JSON.stringify(seatData));
         renderAllSeat();
         return true;
-    } catch (err) {
-        console.warn("云端读取失败", err);
-        const backup = safeStorage.getItem("seatBackup");
-        if(backup) seatData = JSON.parse(backup);
-        showTip("⚠️网络异常，加载本地缓存座位");
+    } catch (error) {
+        console.warn("云端读取失败，启用本地缓存", error);
+        try {
+            seatData = normalizeSeatData(JSON.parse(safeStorage.getItem("localSeatBackup") || 'null'));
+        } catch (_) {
+            seatData = createEmptySeatData();
+        }
         renderAllSeat();
+        if (!silent) showTip("网络异常，当前显示本地座位缓存");
         return false;
     }
 }
 
-// 云端写入座位（Header使用X-Access-Key 解决401）
 async function saveRemoteSeat() {
     try {
-        const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
-            method:"PUT",
-            headers:{
-                "Content-Type":"application/json",
-                "X-Access-Key": ACCESS_KEY
+        const response = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "X-Master-Key": MASTER_KEY
             },
             body: JSON.stringify(seatData)
         });
-        if (!res.ok) throw new Error("写入失败 "+res.status);
-        safeStorage.setItem("seatBackup", JSON.stringify(seatData));
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        safeStorage.setItem("localSeatBackup", JSON.stringify(seatData));
         return true;
-    } catch(err){
-        console.error("座位保存失败",err);
-        showTip("❌座位保存失败，请稍后重试");
+    } catch (error) {
+        console.error("保存座位失败", error);
+        safeStorage.setItem("localSeatBackup", JSON.stringify(seatData));
+        showTip("云端保存失败，已保留本地记录，请稍后刷新重试");
         return false;
     }
 }
 
-// 初始化婚宴页面
-function initBanquetPage(){
+function initBanquetPage() {
     const seatBtn = document.getElementById("seatBtn");
     const banquetPage = document.getElementById("banquetPage");
     const backBtn = document.getElementById("banquetBackBtn");
@@ -1028,161 +934,259 @@ function initBanquetPage(){
     const confirmOk = confirmModal.querySelector(".confirm-ok");
     const tipOk = tipModal.querySelector(".tip-ok");
 
-    // 生成8个环形座位
-    document.querySelectorAll(".round-table").forEach(table=>{
-        const ringWrap = table.querySelector(".seats-ring");
+    document.querySelectorAll(".round-table").forEach(table => {
+        const ring = table.querySelector(".seats-ring");
+        if (ring.children.length) return;
         const tableId = table.dataset.table;
-        const seatCount = 8;
-        const radius = 57;
-        for(let i=0;i<seatCount;i++){
-            const seat = document.createElement("div");
+        for (let index = 0; index < 8; index++) {
+            const seat = document.createElement("button");
+            seat.type = 'button';
             seat.className = "seat";
             seat.dataset.table = tableId;
-            seat.dataset.seatIdx = i;
-            const angle = (Math.PI * 2 / seatCount) * i;
-            const x = 50 + radius * Math.cos(angle);
-            const y = 50 + radius * Math.sin(angle);
-            seat.style.left = `${x}%`;
-            seat.style.top = `${y}%`;
-            ringWrap.appendChild(seat);
+            seat.dataset.seatIdx = String(index);
+            seat.setAttribute('aria-label', `${tableId} 第${index + 1}号座位`);
+            ring.appendChild(seat);
 
-            // 点击空位
-            seat.addEventListener("click",async ()=>{
+            seat.addEventListener("click", async event => {
+                event.stopPropagation();
                 const tid = seat.dataset.table;
                 const sid = Number(seat.dataset.seatIdx);
-                await loadRemoteSeat();
-                if(!seatData?.seats) return;
-                if(seatData.seats[tid][sid] !== null){
-                    showTip("该座位已经被占用！");
+                await loadRemoteSeat({ silent: true });
+                if (!seatData?.seats) return;
+                const occupier = seatData.seats[tid][sid];
+                if (occupier !== null) {
+                    showTip(occupier === userId ? "这是你当前的座位，长按可释放" : "该座位已被其他人占用");
                     return;
                 }
-                pendingSeat = {tableId:tid, seatIndex:sid};
+                pendingSeat = { tableId: tid, seatIndex: sid };
                 openConfirm();
             });
+
+            let longPressTimer = null;
+            let longPressTriggered = false;
+            const cancelLongPress = () => {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            };
+            seat.addEventListener('pointerdown', () => {
+                longPressTriggered = false;
+                longPressTimer = setTimeout(async () => {
+                    const tid = seat.dataset.table;
+                    const sid = Number(seat.dataset.seatIdx);
+                    if (seatData?.seats?.[tid]?.[sid] === userId) {
+                        longPressTriggered = true;
+                        seatData.seats[tid][sid] = null;
+                        await saveRemoteSeat();
+                        renderAllSeat();
+                        showTip("已释放你的座位");
+                    }
+                }, 720);
+            });
+            ['pointerup', 'pointercancel', 'pointerleave'].forEach(type => seat.addEventListener(type, cancelLongPress));
+            seat.addEventListener('contextmenu', event => event.preventDefault());
         }
     });
 
-    // 打开婚宴页面
-    seatBtn.addEventListener("click", async () => {
+    seatBtn.addEventListener("click", async event => {
+        event.stopPropagation();
         banquetPage.classList.remove("hidden");
-        document.body.classList.add("banquet-open");
         resetEntrance();
-        requestAnimationFrame(() => startWalkAnimation());
-        await loadRemoteSeat();
-        renderAllSeat();
+        requestAnimationFrame(() => {
+            layoutSeatRings();
+            startWalkAnimation();
+        });
+        await loadRemoteSeat({ silent: true });
     });
-    // 返回主页
+
     backBtn.addEventListener("click", () => {
         banquetPage.classList.add("hidden");
-        document.body.classList.remove("banquet-open");
         resetEntrance();
     });
-    // 手动刷新座位
-    refreshBtn.addEventListener("click",async ()=>{
-        await loadRemoteSeat();
-        showTip("座位已刷新");
+
+    refreshBtn.addEventListener("click", async () => {
+        const success = await loadRemoteSeat({ silent: true });
+        showTip(success ? "座位已刷新" : "刷新失败，已显示本地缓存");
     });
 
-    // 确认落座逻辑
-    confirmOk.onclick = async ()=>{
-        if(!pendingSeat) return;
-        const {tableId, seatIndex} = pendingSeat;
-        // 清除用户旧座位
-        outer: for(let t in seatData.seats){
-            const arr = seatData.seats[t];
-            for(let i=0;i<arr.length;i++){
-                if(arr[i] === userId){
-                    arr[i] = null;
-                    break outer;
-                }
-            }
+    document.querySelectorAll(".stage-emoji").forEach(emoji => {
+        emoji.addEventListener("click", event => createClickEffect(event.clientX, event.clientY, "✨"));
+    });
+
+    confirmOk.onclick = async () => {
+        if (!pendingSeat) return;
+        seatData = normalizeSeatData(seatData);
+        const { tableId, seatIndex } = pendingSeat;
+        TABLE_IDS.forEach(id => {
+            seatData.seats[id] = seatData.seats[id].map(value => value === userId ? null : value);
+        });
+        if (seatData.seats[tableId][seatIndex] !== null) {
+            confirmModal.classList.add("hidden");
+            pendingSeat = null;
+            showTip("座位刚刚被占用，请重新选择");
+            return;
         }
         seatData.seats[tableId][seatIndex] = userId;
-        const ok = await saveRemoteSeat();
-        if(ok){
-            renderAllSeat();
-            showTip("落座成功✨");
-        }
+        const saved = await saveRemoteSeat();
+        renderAllSeat();
+        showTip(saved ? `落座成功！欢迎来到${tableDisplayName(tableId)}` : "已在本地记录座位，云端稍后再同步");
         confirmModal.classList.add("hidden");
         pendingSeat = null;
     };
-    confirmCancel.onclick = ()=>{
+
+    confirmCancel.onclick = () => {
         confirmModal.classList.add("hidden");
         pendingSeat = null;
     };
-    tipOk.onclick = ()=>tipModal.classList.add("hidden");
+    tipOk.onclick = () => tipModal.classList.add("hidden");
+    confirmModal.addEventListener('click', event => {
+        if (event.target === confirmModal) confirmCancel.click();
+    });
+    tipModal.addEventListener('click', event => {
+        if (event.target === tipModal) tipModal.classList.add('hidden');
+    });
+
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeSeatTimer);
+        resizeSeatTimer = setTimeout(layoutSeatRings, 100);
+    });
 }
 
-// 重置入场动画状态
-function resetEntrance() {
-    const walkGroup = document.getElementById('walkMemberGroup');
-    const stageGroup = document.getElementById('stageMemberGroup');
-    if (entranceTimer) {
-        clearTimeout(entranceTimer);
-        entranceTimer = null;
-    }
-    walkGroup.onanimationend = null;
-    walkGroup.classList.remove('hidden', 'is-entering');
-    stageGroup.classList.add('hidden');
-    stageGroup.classList.remove('arrived');
-    void walkGroup.offsetWidth;
+function tableDisplayName(tableId) {
+    return ({ left1: '福来方亲友席', left2: '棍方亲友席', left3: '极方亲友席', right1: '宝方亲友席', right2: '航方亲友席', right3: '铲方亲友席' })[tableId] || '婚宴席';
 }
 
-// 约 4 秒：新人从页面底部沿中间走廊进入舞台
-function startWalkAnimation() {
-    const walkGroup = document.getElementById('walkMemberGroup');
-    const stageGroup = document.getElementById('stageMemberGroup');
-    walkGroup.classList.remove('hidden', 'is-entering');
-    stageGroup.classList.add('hidden');
-    stageGroup.classList.remove('arrived');
-    void walkGroup.offsetWidth;
-
-    let finished = false;
-    const finishEntrance = () => {
-        if (finished) return;
-        finished = true;
-        if (entranceTimer) clearTimeout(entranceTimer);
-        entranceTimer = null;
-        walkGroup.onanimationend = null;
-        walkGroup.classList.add('hidden');
-        walkGroup.classList.remove('is-entering');
-        stageGroup.classList.remove('hidden');
-        stageGroup.classList.add('arrived');
-    };
-
-    walkGroup.onanimationend = event => {
-        if (event.target === walkGroup && event.animationName === 'coupleEntrance') {
-            finishEntrance();
-        }
-    };
-    walkGroup.classList.add('is-entering');
-
-    // 极少数旧浏览器不触发 animationend，使用兜底定时器。
-    entranceTimer = setTimeout(finishEntrance, 4300);
+function layoutSeatRings() {
+    document.querySelectorAll('.seats-ring').forEach(ring => {
+        const seats = [...ring.querySelectorAll('.seat')];
+        const rect = ring.getBoundingClientRect();
+        if (!seats.length || rect.width < 20 || rect.height < 20) return;
+        const seatSize = seats[0].getBoundingClientRect().width || 24;
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        const radius = Math.max(0, Math.min(rect.width, rect.height) / 2 - seatSize * 0.56 - 2);
+        seats.forEach((seat, index) => {
+            const angle = -Math.PI / 2 + (Math.PI * 2 / seats.length) * index;
+            seat.style.left = `${centerX + Math.cos(angle) * radius}px`;
+            seat.style.top = `${centerY + Math.sin(angle) * radius}px`;
+        });
+    });
 }
 
-function openConfirm(){
+function openConfirm() {
     document.getElementById("seatConfirmModal").classList.remove("hidden");
 }
-function showTip(text){
-    document.getElementById("tipText").textContent = text;
-    document.getElementById("tipModal").classList.remove("hidden");
+
+function showTip(text) {
+    const tipText = document.getElementById("tipText");
+    const modal = document.getElementById("tipModal");
+    if (!tipText || !modal) return;
+    tipText.textContent = text;
+    modal.classList.remove("hidden");
 }
 
-// 渲染全部座位，占用显示✨
-function renderAllSeat(){
-    if(!seatData?.seats) return;
-    document.querySelectorAll(".seat").forEach(seat=>{
-        const tid = seat.dataset.table;
-        const sid = Number(seat.dataset.seatIdx);
-        const occupier = seatData.seats[tid][sid];
-        if(occupier !== null){
-            seat.classList.add("occupied");
-        }else{
-            seat.classList.remove("occupied");
-        }
-    })
+function resetEntrance() {
+    clearTimeout(entranceFinishTimer);
+    entranceAnimation?.cancel();
+    entranceAnimation = null;
+    const walkGroup = document.getElementById("walkMemberGroup");
+    const stageGroup = document.getElementById("stageMemberGroup");
+    const status = document.getElementById('entranceStatus');
+    if (!walkGroup || !stageGroup) return;
+    walkGroup.style.display = "flex";
+    walkGroup.style.opacity = '1';
+    walkGroup.style.transform = 'translateX(-50%)';
+    walkGroup.classList.remove('is-walking');
+    stageGroup.classList.add("hidden");
+    if (status) status.textContent = '五位新人正在入场';
 }
 
-// ===== 【重点】找到页面初始化DOMContentLoaded函数内部末尾添加这一行 =====
-// initBanquetPage();
+function startWalkAnimation() {
+    const walkGroup = document.getElementById("walkMemberGroup");
+    const stageGroup = document.getElementById("stageMemberGroup");
+    const stage = document.querySelector('.wedding-stage');
+    const status = document.getElementById('entranceStatus');
+    if (!walkGroup || !stageGroup || !stage) return;
+
+    const finish = () => {
+        walkGroup.classList.remove('is-walking');
+        walkGroup.style.display = 'none';
+        stageGroup.classList.remove('hidden');
+        if (status) status.textContent = '欢迎五位新人登上婚礼舞台';
+        scatterStagePetals();
+    };
+
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion || typeof walkGroup.animate !== 'function') {
+        entranceFinishTimer = setTimeout(finish, reduceMotion ? 350 : 4000);
+        return;
+    }
+
+    const groupRect = walkGroup.getBoundingClientRect();
+    const stageRect = stage.getBoundingClientRect();
+    const targetCenterY = stageRect.bottom - Math.min(48, stageRect.height * 0.22);
+    const startCenterY = groupRect.top + groupRect.height / 2;
+    const dy = targetCenterY - startCenterY;
+    walkGroup.classList.add('is-walking');
+
+    entranceAnimation = walkGroup.animate([
+        { transform: 'translateX(-50%) translateY(28px) scale(.9)', opacity: 0, offset: 0 },
+        { transform: `translateX(-50%) translateY(${dy * .08}px) scale(.94)`, opacity: 1, offset: .1 },
+        { transform: `translateX(calc(-50% - 9px)) translateY(${dy * .34}px) rotate(-1.5deg)`, opacity: 1, offset: .34 },
+        { transform: `translateX(calc(-50% + 8px)) translateY(${dy * .62}px) rotate(1.5deg)`, opacity: 1, offset: .62 },
+        { transform: `translateX(calc(-50% - 4px)) translateY(${dy * .84}px)`, opacity: 1, offset: .84 },
+        { transform: `translateX(-50%) translateY(${dy}px) scale(1.04)`, opacity: 1, offset: 1 }
+    ], {
+        duration: 4000,
+        easing: 'cubic-bezier(.22,.72,.22,1)',
+        fill: 'forwards'
+    });
+    entranceAnimation.onfinish = finish;
+    entranceAnimation.oncancel = () => walkGroup.classList.remove('is-walking');
+}
+
+function scatterStagePetals() {
+    const container = document.getElementById('stagePetals');
+    if (!container) return;
+    container.innerHTML = '';
+    const icons = ['🌸', '✨', '💜', '💮'];
+    for (let index = 0; index < 24; index++) {
+        const petal = document.createElement('span');
+        petal.className = 'stage-petal';
+        petal.textContent = icons[index % icons.length];
+        petal.style.left = `${8 + Math.random() * 84}%`;
+        petal.style.fontSize = `${12 + Math.random() * 10}px`;
+        petal.style.setProperty('--petal-x', `${-35 + Math.random() * 70}px`);
+        petal.style.animationDelay = `${Math.random() * .7}s`;
+        container.appendChild(petal);
+        setTimeout(() => petal.remove(), 3700);
+    }
+}
+
+function renderAllSeat() {
+    seatData = normalizeSeatData(seatData);
+    document.querySelectorAll(".seat").forEach(seat => {
+        const tableId = seat.dataset.table;
+        const seatIndex = Number(seat.dataset.seatIdx);
+        const occupier = seatData.seats[tableId][seatIndex];
+        const occupied = occupier !== null;
+        seat.textContent = occupied ? tableEmojiMap[tableId] : "";
+        seat.classList.toggle("occupied", occupied);
+        seat.classList.toggle("own-seat", occupier === userId);
+        seat.setAttribute('aria-label', occupied
+            ? (occupier === userId ? `${tableDisplayName(tableId)}第${seatIndex + 1}号，你的座位` : `${tableDisplayName(tableId)}第${seatIndex + 1}号，已占用`)
+            : `${tableDisplayName(tableId)}第${seatIndex + 1}号，空位`);
+    });
+    requestAnimationFrame(layoutSeatRings);
+}
+
+function createClickEffect(x, y, text) {
+    const container = document.querySelector(".click-effect-container");
+    if (!container) return;
+    const element = document.createElement("div");
+    element.className = "click-effect";
+    element.textContent = text;
+    element.style.left = x + "px";
+    element.style.top = y + "px";
+    container.appendChild(element);
+    setTimeout(() => element.remove(), 700);
+}

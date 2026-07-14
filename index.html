@@ -3,219 +3,300 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#f7bfd5">
-    <title>婚柬</title>
+    <title>我们结婚啦</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <!-- 背景音乐 -->
     <audio id="bgMusic" loop>
-        <source src="bite me.ogg" type="audio/ogg">
+        <source src="supergirl.ogg" type="audio/ogg">
     </audio>
 
     <!-- 开屏 -->
     <div id="splash" class="splash">
-        <div class="splash-glow"></div>
-<div class="splash-content">
-    <div class="splash-deco left">✦</div>
-               <h1 class="splash-title">欢迎来参加<br>极禹的婚礼</h1>
-            <div class="splash-sub splash-credit hidden" id="splashSub">— 际遇星 恭贺 —</div>
-    <h3 class="splash-sub" id="splashTypewriter"></h3>
-    <div class="splash-deco right">✦</div>
-</div>
-        <div class="splash-stars"></div>
-    </div>
-
-    <!-- 星星氛围层 -->
-    <div id="starsLayer" class="stars-layer"></div>
-
-    <!-- 大际遇星层 -->
-    <div id="bigStarsLayer" class="big-stars-layer"></div>
-
-    <!-- 歌曲碎片+花瓣雨层 -->
-    <div id="songRain" class="song-rain"></div>
-
-    <!-- 主页面 -->
-    <main id="mainPage" class="main-page hidden" aria-label="极禹婚礼主页">
-        <!-- 左上角请柬按钮 -->
-        <button type="button" id="inviteBtn" class="invite-btn" title="婚礼请柬">💌</button>
-
-        <!-- 右上角音乐按钮 -->
-        <div class="music-wrap">
-            <button type="button" id="musicBtn" class="music-btn" title="选择BGM">🎵</button>
-            <div id="musicMenu" class="music-menu hidden">
-                <div class="menu-item active" data-src="bite me.ogg">Bite Me</div>
-                <div class="menu-item" data-src="不值得.ogg">不值得</div>
-                <div class="menu-item" data-src="连名带姓.ogg">连名带姓</div>
-                <div class="menu-item" data-src="流浪记.ogg">流浪记</div>
+        <div class="splash-content">
+            <!-- 弧形文字 -->
+            <svg class="arc-text" viewBox="0 0 400 230" preserveAspectRatio="xMidYMid meet">
+                <defs>
+                    <path id="arcPath" d="M 20 210 A 190 190 0 0 1 380 210" fill="none"/>
+                </defs>
+                <!-- 装饰星点 -->
+                <text x="18" y="212" class="deco-star" fill="#fff">✦</text>
+                <text x="374" y="212" class="deco-star" fill="#fff">✦</text>
+                <!-- 文字描边层 -->
+                <text class="arc-stroke" fill="none">
+                    <textPath href="#arcPath" startOffset="50%" text-anchor="middle">
+                        欢迎参加TOP五人婚礼
+                    </textPath>
+                </text>
+                <!-- 文字主色层 -->
+                <text class="arc-main" fill="#ffffff">
+                    <textPath href="#arcPath" startOffset="50%" text-anchor="middle">
+                        欢迎参加TOP五人婚礼
+                    </textPath>
+                </text>
+            </svg>
+            <!-- 打字机寄语 -->
+            <div class="splash-typing">
+                <span id="typingText"></span><span class="cursor">|</span>
+            </div>
+            <!-- 底部装饰线 -->
+            <div class="splash-divider">
+                <span class="line"></span>
+                <span class="diamond">◆</span>
+                <span class="line"></span>
             </div>
         </div>
-<button type="button" id="seatBtn" class="seat-btn" title="去入席🪑">入席</button>
-<button type="button" id="resetBtn" class="reset-btn" title="清空所有解锁记录">🔄</button>
+        <!-- 漂浮光点 -->
+        <div class="float-dots">
+            <span></span><span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span><span></span>
+        </div>
+    </div>
 
-        <!-- 中央双人合照 -->
-        <div class="couple-section">
-            <div class="polaroid-frame" id="couplePhoto">
-                <div class="polaroid-inner">
-                    <div class="photo-left">
-                        <img src="zj.jpg" alt="张极" onerror="this.style.display='none';this.parentNode.innerHTML+='<div class=photo-placeholder>张极</div>'">
+    <!-- 星光粒子层 -->
+    <div id="particles" class="particles"></div>
+
+    <!-- 蝴蝶层 -->
+    <div id="butterflies" class="butterflies"></div>
+
+    <!-- 留言漂浮文字容器 -->
+    <div id="floatingMessages" class="floating-messages"></div>
+
+    <!-- 主页面 -->
+    <div id="mainPage" class="main-page hidden">
+        <!-- 右上角音乐按钮 -->
+        <button id="musicBtn" class="music-btn" title="音乐开关">🔊</button>
+
+        <!-- 左上角请柬按钮 -->
+        <button id="inviteBtn" class="invite-btn" title="婚礼请柬">💌</button>
+
+        <!-- 左下角留言墙按钮 -->
+        <button id="messageBtn" class="message-btn" title="留言墙">✉️</button>
+
+        <!-- 右下角相册回忆墙按钮 -->
+        <button id="albumBtn" class="album-btn" title="回忆墙">📷</button>
+<button id="seatBtn" class="seat-btn" type="button" title="去入席">入席</button>
+        <!-- 摩天轮容器 -->
+        <div class="ferris-container">
+            <div id="ferrisWheel" class="ferris-wheel">
+                <!-- 朱志鑫 -->
+                <div class="photo-card" data-id="0" data-name="朱志鑫" data-color="#FFD700">
+                    <div class="photo-frame frame-yellow">
+                        <img src="zzx.jpg" alt="朱志鑫" onerror="this.style.display='none';this.parentNode.innerHTML+='<div class=photo-placeholder>朱志鑫</div>'">
                     </div>
-                    <div class="heart-between">💗</div>
-                    <div class="photo-right">
+                </div>
+                <!-- 张泽禹 -->
+                <div class="photo-card" data-id="1" data-name="张泽禹" data-color="#32CD32">
+                    <div class="photo-frame frame-green">
                         <img src="zzy.jpg" alt="张泽禹" onerror="this.style.display='none';this.parentNode.innerHTML+='<div class=photo-placeholder>张泽禹</div>'">
                     </div>
                 </div>
-                <div class="polaroid-bottom">
-                    <span class="names">张极 & 张泽禹</span>
+                <!-- 张极 -->
+                <div class="photo-card" data-id="2" data-name="张极" data-color="#FF8C00">
+                    <div class="photo-frame frame-orange">
+                        <img src="zj.jpg" alt="张极" onerror="this.style.display='none';this.parentNode.innerHTML+='<div class=photo-placeholder>张极</div>'">
+                    </div>
+                </div>
+                <!-- 左航 -->
+                <div class="photo-card" data-id="3" data-name="左航" data-color="#1E90FF">
+                    <div class="photo-frame frame-blue">
+                        <img src="zh.jpg" alt="左航" onerror="this.style.display='none';this.parentNode.innerHTML+='<div class=photo-placeholder>左航</div>'">
+                    </div>
+                </div>
+                <!-- 苏新皓 -->
+                <div class="photo-card" data-id="4" data-name="苏新皓" data-color="#DC143C">
+                    <div class="photo-frame frame-red">
+                        <img src="sxh.jpg" alt="苏新皓" onerror="this.style.display='none';this.parentNode.innerHTML+='<div class=photo-placeholder>苏新皓</div>'">
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- 17首歌时光轴 -->
-        <div class="timeline">
-            <div class="timeline-label">— 我们的歌 · 八年十七首 —</div>
-            <div class="timeline-dots" id="timelineDots">
-                <!-- 连线画布 -->
-                <svg class="line-canvas" id="lineCanvas" aria-hidden="true"></svg>
-            </div>
-            <div class="progress-wrap">
-                <span class="progress-text">已解锁 <span id="unlockCount">0</span>/17 首歌</span>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill"></div>
-                </div>
-            </div>
-            <div class="unlock-cards" id="unlockCards" tabindex="0" role="list" aria-label="歌曲解锁卡片，可左右滑动"></div>
-            <div class="completion-legend">金色星印代表歌词挑战已通关</div>
+        <!-- 摩天轮操作区：支持自动旋转与手动拖动 -->
+        <div class="wheel-controls" aria-label="摩天轮控制">
+            <button id="wheelModeBtn" class="wheel-mode-btn" type="button" aria-pressed="false">自动旋转：开</button>
+            <span class="wheel-drag-tip">按住照片区域左右滑动</span>
+            <button id="groupEggBtn" class="group-egg-btn" type="button" aria-label="五人彩蛋进度">
+                <span id="groupEggLabel">✨ 五人彩蛋</span> <strong id="groupProgress">0/5</strong>
+            </button>
         </div>
 
-        <!-- 底部寄语 -->
-        <div class="bottom-message">
-            <p class="main-oath">今天我终于陪你把异乡走成了故乡</p>
-            <p class="signature">— 极禹 · 2026 —</p>
+        <!-- 底部新郎文案 -->
+        <div class="bottom-text">
+            <div class="groom-list">
+                <span class="name-toggle" style="color:#FFD700" data-name="朱志鑫" data-color="#FFD700">新郎朱志鑫</span>
+                <span class="dot">·</span>
+                <span class="name-toggle" style="color:#32CD32" data-name="张泽禹" data-color="#32CD32">新郎张泽禹</span>
+                <span class="dot">·</span>
+                <span class="name-toggle" style="color:#FF8C00" data-name="张极" data-color="#FF8C00">新郎张极</span>
+                <span class="dot">·</span>
+                <span class="name-toggle" style="color:#1E90FF" data-name="左航" data-color="#1E90FF">新郎左航</span>
+                <span class="dot">·</span>
+                <span class="name-toggle" style="color:#DC143C" data-name="苏新皓" data-color="#DC143C">新郎苏新皓</span>
+            </div>
+            <div class="oath-text">
+                <p>我们决定</p>
+                <p>把我变成我们</p>
+                <p>把今天变成</p>
+                <p>每一天</p>
+            </div>
         </div>
 
-        <!-- 爱心爆炸容器 -->
-        <div id="heartBurst" class="heart-burst"></div>
+        <!-- 唯粉互动气泡 -->
+        <div id="fanBubble" class="fan-bubble hidden">
+            <div class="bubble-content">
+                <span id="fanText"></span>
+            </div>
+        </div>
+
+        <!-- CP合影弹窗 -->
+        <div id="cpModal" class="cp-modal hidden">
+            <div class="cp-photo">
+                <div class="veil"></div>
+                <div class="cp-left" id="cpLeft"></div>
+                <div class="cp-right" id="cpRight"></div>
+                <div class="cp-nameplate" id="cpNameplate"></div>
+            </div>
+            <div class="cp-petals" id="cpPetals"></div>
+        </div>
+
+        <!-- 五人同框彩蛋：点亮五位成员后解锁，之后可随时再次打开 -->
+        <div id="groupModal" class="group-modal hidden" role="dialog" aria-modal="true" aria-labelledby="groupTitle">
+            <button id="groupClose" class="group-close" type="button" aria-label="关闭五人彩蛋">×</button>
+            <div class="group-kicker">五位成员已全部点亮</div>
+            <div class="group-title" id="groupTitle">✨ TOP 登陆少年 ✨</div>
+            <div class="group-photos">
+                <figure class="group-item g0"><img src="zzx.jpg" alt="朱志鑫"><figcaption>朱志鑫</figcaption></figure>
+                <figure class="group-item g1"><img src="zzy.jpg" alt="张泽禹"><figcaption>张泽禹</figcaption></figure>
+                <figure class="group-item g2"><img src="zj.jpg" alt="张极"><figcaption>张极</figcaption></figure>
+                <figure class="group-item g3"><img src="zh.jpg" alt="左航"><figcaption>左航</figcaption></figure>
+                <figure class="group-item g4"><img src="sxh.jpg" alt="苏新皓"><figcaption>苏新皓</figcaption></figure>
+            </div>
+            <p class="group-message">从五束不同颜色的光，到同一片并肩闪耀的星河。</p>
+            <p class="group-tip">点击右上角或空白区域关闭，主页彩蛋按钮可再次打开</p>
+            <div class="group-fireworks" id="fireworks"></div>
+        </div>
 
         <!-- 请柬侧边栏 -->
         <div id="inviteSidebar" class="invite-sidebar">
             <div class="invite-card">
-                <div class="invite-corner tl"></div>
-                <div class="invite-corner tr"></div>
-                <div class="invite-corner bl"></div>
-                <div class="invite-corner br"></div>
-                
-                <h2 class="invite-title">✦ 极禹婚礼邀请函 ✦</h2>
+                <h2 class="invite-title">✦ 婚礼请柬 ✦</h2>
                 <div class="invite-line"></div>
-                
-                <p class="invite-to">致 · 每一颗际遇星</p>
-<p class="invite-host">
-
-    <span>诚邀    <input type="text" id="hostNameInput" class="host-name-input" placeholder="您的昵称" maxlength="8">参加极禹婚礼</span>
-</p>
-                
-                <div class="invite-body">
-                    <p>谨于吉日良辰</p>
-                    <p>为 张极 & 张泽禹</p>
-                    <p>举 行 婚 典</p>
-                </div>
-                
-                <div class="invite-names">
-                    <span class="inv-name left">张 极</span>
-                    <span class="inv-and">&</span>
-                    <span class="inv-name right">张泽禹</span>
-                </div>
-                
-                <div class="invite-body small">
-                    <p>八年相伴 · 从试训到舞台</p>
-                    <p>敬备喜筵 · 恭请光临</p>
-                </div>
-                
-                <div class="invite-line"></div>
-                
-                <p class="invite-oath">
-                    今天我终于陪你<br>
-                    把异乡走成了故乡
+                <p class="invite-greet">
+                    诚邀
+                    <span class="invitee-input-wrap">
+                        <input type="text" id="inviteeInput" class="invitee-input" placeholder="您的昵称" maxlength="12">
+                    </span><br>
+                    您来参加我们的婚礼
                 </p>
-                
-                <p class="invite-sign">— 际遇星 同贺 —</p>
-                
-                <button type="button" class="invite-close" id="inviteClose">×</button>
+                <ul class="invite-grooms">
+                    <li style="color:#FFD700">朱志鑫</li>
+                    <li style="color:#32CD32">张泽禹</li>
+                    <li style="color:#FF8C00">张　极</li>
+                    <li style="color:#1E90FF">左　航</li>
+                    <li style="color:#DC143C">苏新皓</li>
+                </ul>
+                <div class="invite-line"></div>
+                <p class="invite-oath">
+                    我们决定<br>
+                    把"我"变成"我们"<br>
+                    把"今天"变成"每一天"
+                </p>
+                <button class="invite-close" id="inviteClose">×</button>
             </div>
         </div>
 
-<!-- 替换原来的彩蛋弹窗 -->
-<div id="easterModal" class="easter-modal hidden">
-    <div class="fireworks-container" id="fireworksContainer"></div>
-    <div class="easter-content">
-        <p class="easter-line">感谢你陪我们走过这一路</p>
-        <p class="easter-line">从2018年盛夏的试训教室，到2026年</p>
-        <p class="easter-line">十七首歌，八年时光，每一个音符都刻着并肩的模样</p>
-        <p class="easter-line">从青涩到坦荡，从异乡到故乡</p>
-        <p class="easter-line">所幸山海相隔的朝暮，都成了岁岁年年的共度</p>
-        <p class="easter-line">际遇星常在，极禹永并肩</p>
-    </div>
-</div>
-
-        <!-- 歌曲详情弹窗 -->
-        <div id="songModal" class="song-modal hidden">
-            <div class="song-modal-card">
-                <div class="song-img-wrap">
-                    <img id="songImg" src="" alt="" onerror="this.style.display='none'">
+        <!-- 留言墙弹窗 -->
+        <div id="messageModal" class="message-modal hidden">
+            <div class="message-card">
+                <h3>💌 留言墙 💌</h3>
+                <p class="message-sub">写下你的告白，让它飘向婚礼星球</p>
+                <textarea id="messageInput" class="message-input" maxlength="30" placeholder="写下简短告白（最多30字）"></textarea>
+                <div class="message-count"><span id="msgCount">0</span>/30</div>
+                <div class="message-actions">
+                    <button class="msg-cancel" id="msgCancel">取消</button>
+                    <button class="msg-submit" id="msgSubmit">发送告白</button>
                 </div>
-<p id="songName" class="song-name"></p>
-<button type="button" class="lyric-challenge-btn" id="lyricChallengeBtn">来挑战歌词 ✨</button>
-<button type="button" class="song-close" id="songClose">×</button>
             </div>
         </div>
-        <!-- 花瓣撒花容器 -->
-        <div id="petalBurst" class="petal-burst"></div>
-    </main>
 
-<!-- 歌词挑战弹窗 -->
-<div id="lyricModal" class="lyric-modal hidden">
-    <div class="lyric-modal-card">
-        <h3 class="lyric-title">歌词猜猜看</h3>
-        <div class="lyric-content" id="lyricContent"></div>
-        <div class="lyric-result" id="lyricResult" aria-live="polite"></div>
-        <div class="lyric-btns">
-            <button type="button" class="lyric-submit" id="lyricSubmit">提交答案</button>
-            <button type="button" class="lyric-retry hidden" id="lyricRetry">再试一次</button>
+       <!-- 相册回忆墙弹窗（移除大图查看器，幻灯片内置文案） -->
+        <div id="albumModal" class="album-modal hidden">
+            <div class="album-header">
+                <h3>✨ 回忆墙 ✨</h3>
+                <button class="album-close" id="albumClose">×</button>
+            </div>
+            <div class="album-carousel" id="albumCarousel">
+                <div class="album-track" id="albumTrack">
+                    <div class="album-slide" data-index="0">
+                        <img src="1.jpg" alt="回忆1" onerror="this.style.display='none';this.parentNode.innerHTML+='<div class=album-placeholder>回忆 1</div>'">
+                        <div class="slide-caption"></div>
+                    </div>
+                    <div class="album-slide" data-index="1">
+                        <img src="2.jpg" alt="回忆2" onerror="this.style.display='none';this.parentNode.innerHTML+='<div class=album-placeholder>回忆 2</div>'">
+                        <div class="slide-caption"></div>
+                    </div>
+                    <div class="album-slide" data-index="2">
+                        <img src="3.jpg" alt="回忆3" onerror="this.style.display='none';this.parentNode.innerHTML+='<div class=album-placeholder>回忆 3</div>'">
+                        <div class="slide-caption"></div>
+                    </div>
+                </div>
+                <button class="album-arrow prev" id="albumPrev">‹</button>
+                <button class="album-arrow next" id="albumNext">›</button>
+                <div class="album-dots" id="albumDots">
+                    <span class="dot active"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                </div>
+            </div>
+            <p class="album-tip">左右滑动 / 点击箭头切换照片</p>
         </div>
-        <button type="button" class="lyric-close" id="lyricClose">×</button>
+
+        <!-- 闪光层 -->
+        <div id="flashLayer" class="flash-layer"></div>
     </div>
-</div>
-<!-- ========== 婚宴席位页面｜浅粉色梦幻 ========== -->
+<!-- ========== 新增：婚宴席位页面 ========== -->
 <div id="banquetPage" class="banquet-page hidden">
-    <!-- 控制按钮 -->
-    <button type="button" class="banquet-back-btn" id="banquetBackBtn">返回</button>
-    <button type="button" class="refresh-seat-btn" id="refreshSeatBtn">刷新</button>
-
-    <!-- 顶部婚礼舞台 25vh -->
+    <!-- 返回按钮 -->
+    <button class="banquet-back-btn" id="banquetBackBtn">返回</button>
+    <!-- 手动刷新座位 -->
+    <button class="refresh-seat-btn" id="refreshSeatBtn">刷新</button>
+    <!-- 婚礼舞台 顶部25%高度 -->
     <div class="wedding-stage">
-        <div class="stage-title">💖婚礼舞台💖</div>
-        <div class="stage-member-group hidden" id="stageMemberGroup">
-            <span class="stage-emoji" data-id="0">🐷</span>
-            <span class="stage-emoji" data-id="1">🐶</span>
+        <div class="stage-title">💜 婚礼舞台 💜</div>
+        <div class="entrance-status" id="entranceStatus">五位新人正在入场</div>
+        <div class="stage-platform">
+            <div class="stage-member-group hidden" id="stageMemberGroup">
+                <span class="stage-emoji" data-id="3">😼</span>
+                <span class="stage-emoji" data-id="1">🐶</span>
+                <span class="stage-emoji" data-id="0">🐱</span>
+                <span class="stage-emoji" data-id="2">🐷</span>
+                <span class="stage-emoji" data-id="4">🐰</span>
+            </div>
         </div>
+        <div class="stage-petals" id="stagePetals"></div>
     </div>
 
     <div class="banquet-main-container">
         <!-- 左侧三桌 -->
         <div class="table-column left-column">
             <div class="round-table-wrap">
-                <div class="table-name-tag">双方亲友</div>
+                <div class="table-name-tag">福来方亲友</div>
                 <div class="round-table" data-table="left1">
-                    <div class="table-food-emoji">🍤🍰🐟🍗<br>🍇🥣🦀🥬</div>
+                    <div class="table-food-emoji">🍤🍗🍇<br>
+                        🥣🦀🥬</div>
                     <div class="table-circle">
+                        <!-- 环形座位JS动态生成 -->
                         <div class="seats-ring"></div>
                     </div>
                 </div>
             </div>
             <div class="round-table-wrap">
-                <div class="table-name-tag">极方亲友</div>
+                <div class="table-name-tag">棍方亲友</div>
                 <div class="round-table" data-table="left2">
-                    <div class="table-food-emoji">🍤🍰🐟🍗<br>🍇🥣🦀🥬</div>
+                    <div class="table-food-emoji">🍤🍰🍇<br>
+                        🥣🦀🥬</div>
                     <div class="table-circle">
                         <div class="seats-ring"></div>
                     </div>
@@ -224,64 +305,63 @@
             <div class="round-table-wrap">
                 <div class="table-name-tag">极方亲友</div>
                 <div class="round-table" data-table="left3">
-                    <div class="table-food-emoji">🍤🍰🐟🍗<br>🍇🥣🦀🥬</div>
+                    <div class="table-food-emoji">🍤🍰🐟<br>🥣🦀🥬</div>
                     <div class="table-circle">
                         <div class="seats-ring"></div>
                     </div>
                 </div>
             </div>
         </div>
-        <!-- 中间走廊 -->
-        <div class="center-corridor" aria-hidden="true">
-            <span class="aisle-sparkle">✦</span>
-            <span class="aisle-sparkle">♡</span>
-            <span class="aisle-sparkle">✦</span>
+        <!-- 中间竖走廊 -->
+        <div class="center-corridor">
+            <div class="corridor-path"></div>
+            <div class="walk-member-group" id="walkMemberGroup">
+                <span class="walk-emoji" data-id="0">🐱</span>
+                <span class="walk-emoji" data-id="1">🐶</span>
+                <span class="walk-emoji" data-id="2">🐷</span>
+                <span class="walk-emoji" data-id="3">😼</span>
+                <span class="walk-emoji" data-id="4">🐰</span>
+            </div>
         </div>
         <!-- 右侧三桌 -->
         <div class="table-column right-column">
             <div class="round-table-wrap">
-                <div class="table-name-tag">双方亲友</div>
+                <div class="table-name-tag">宝方亲友</div>
                 <div class="round-table" data-table="right1">
-                    <div class="table-food-emoji">🍤🍰🐟🍗<br>🍇🥣🦀🥬</div>
+                    <div class="table-food-emoji">🍤🍰🐟<br>🍗🦀🥬</div>
                     <div class="table-circle">
                         <div class="seats-ring"></div>
                     </div>
                 </div>
             </div>
             <div class="round-table-wrap">
-                <div class="table-name-tag">宝方亲友</div>
+                <div class="table-name-tag">航方亲友</div>
                 <div class="round-table" data-table="right2">
-                    <div class="table-food-emoji">🍤🍰🐟🍗<br>🍇🥣🦀🥬</div>
+                    <div class="table-food-emoji">🍤🍰🐟<br>🍗🍇🥬</div>
                     <div class="table-circle">
                         <div class="seats-ring"></div>
                     </div>
                 </div>
             </div>
             <div class="round-table-wrap">
-                <div class="table-name-tag">宝方亲友</div>
+                <div class="table-name-tag">铲方亲友</div>
                 <div class="round-table" data-table="right3">
-                    <div class="table-food-emoji">🍤🍰🐟🍗<br>🍇🥣🦀🥬</div>
+                    <div class="table-food-emoji">🍤🍰🐟<br>🍗🍇🦀</div>
                     <div class="table-circle">
                         <div class="seats-ring"></div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- 新人从页面底部沿中间走廊入场 -->
-    <div class="walk-member-group" id="walkMemberGroup" aria-label="新人入场动画">
-        <span class="walk-emoji" data-id="0">🐷</span>
-        <span class="walk-emoji" data-id="1">🐶</span>
     </div>
 
     <!-- 确认弹窗 -->
     <div class="seat-confirm-modal hidden" id="seatConfirmModal">
         <div class="confirm-card">
-            <p>确定选择这个座位落座吗？</p>
+            <p id="confirmText">确定选择这个座位落座吗？</p>
             <div class="confirm-btns">
-                <button type="button" class="confirm-cancel">取消</button>
-                <button type="button" class="confirm-ok">确认落座</button>
+                <button class="confirm-cancel">取消</button>
+                <button class="confirm-ok">确认落座</button>
             </div>
         </div>
     </div>
@@ -289,11 +369,12 @@
     <div class="tip-modal hidden" id="tipModal">
         <div class="tip-card">
             <p id="tipText"></p>
-            <button type="button" class="tip-ok">知道了</button>
+            <button class="tip-ok">知道了</button>
         </div>
     </div>
+    <!-- 点击闪光特效 -->
+    <div class="click-effect-container"></div>
 </div>
-
     <script src="script.js"></script>
 </body>
 </html>
