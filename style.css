@@ -1420,7 +1420,7 @@ html, body {
 .refresh-seat-btn{
     position:absolute;
     top:14px;
-    left:140px;
+    right:14px;
     border:none;
     background:rgba(255,255,255,0.35);
     backdrop-filter:blur(4px);
@@ -1533,10 +1533,10 @@ html, body {
     align-items:center;
 }
 .table-name-tag{
-    font-size: max(13px,2vw);
+    font-size: max(12px,2vw);
     color:#542b7c;
     font-weight:bold;
-    margin-bottom: 6px;
+    margin-bottom: 10px;
 }
 .round-table{
     width: min(13vh,130px);
