@@ -1720,7 +1720,7 @@ button { -webkit-user-select: none; user-select: none; }
 .album-btn { bottom: calc(var(--safe-bottom) + 16px); right: calc(var(--safe-right) + 14px); }
 .seat-btn {
     right: calc(var(--safe-right) + 15px);
-    bottom: calc(var(--safe-bottom) + 72px);
+    bottom: calc(var(--safe-bottom) + 68px);
     background: linear-gradient(145deg, rgba(160,118,215,.92), rgba(111,72,166,.92));
     color: #fff;
     font-size: 13px;
@@ -1780,8 +1780,8 @@ button { -webkit-user-select: none; user-select: none; }
 
 .group-egg-btn {
     position: fixed;
-    top: calc(var(--safe-top) + 18px);
-    right: calc(var(--safe-right) + 74px);
+    top: calc(var(--safe-top) + 120px);
+    left: calc(var(--safe-right) + 14px);
     z-index: 210;
     min-width: 48px;
     min-height: 36px;
@@ -1802,7 +1802,7 @@ button { -webkit-user-select: none; user-select: none; }
 }
 
 .bottom-text {
-    top: clamp(505px, 69vh, 610px);
+    top: clamp(480px, 63vh, 580px);
     bottom: auto;
     max-width: calc(100vw - 92px);
     gap: clamp(7px, 2vw, 13px);
@@ -2008,7 +2008,7 @@ button { -webkit-user-select: none; user-select: none; }
         --seat-size: 21px;
     }
     .main-page { min-height: 680px; }
-    .ferris-container { top: 184px; height: 248px; }
+    .ferris-container { top: 200px; height: 248px; }
     .wheel-controls { top: 378px; }
     .bottom-text { top: 485px; }
     .group-photos { grid-template-columns: repeat(3, minmax(0, 1fr)); width: min(88vw, 430px); }
@@ -2026,7 +2026,7 @@ button { -webkit-user-select: none; user-select: none; }
 @media (min-width: 820px) and (min-height: 600px) {
     :root { --wheel-card-w: clamp(118px, 12vw, 150px); --wheel-depth: clamp(190px, 20vw, 245px); }
     .main-page { min-height: 100dvh; }
-    .ferris-container { left: 37%; top: 48%; width: 64%; height: 58%; }
+    .ferris-container { left: 37%; top: 50%; width: 64%; height: 58%; }
     .wheel-controls { left: 37%; top: 80%; width: 56%; }
     .bottom-text { left: 78%; top: 48%; transform: translate(-50%, -50%); max-width: 330px; }
     .groom-list > span:not(.dot), .oath-text p { font-size: 16px; }
@@ -2036,7 +2036,7 @@ button { -webkit-user-select: none; user-select: none; }
 @media (orientation: landscape) and (max-height: 560px) {
     :root { --wheel-card-w: clamp(84px, 15vh, 108px); --wheel-depth: clamp(130px, 28vw, 190px); --table-size: clamp(67px, 17vh, 88px); --seat-size: clamp(20px, 5vh, 25px); }
     .main-page { min-height: max(100dvh, 500px); }
-    .ferris-container { left: 36%; top: 48%; width: 64%; height: 72%; }
+    .ferris-container { left: 36%; top: 50%; width: 64%; height: 72%; }
     .wheel-controls { left: 36%; top: 82%; width: 62%; }
     .wheel-drag-tip { display: none; }
     .bottom-text { left: 78%; top: 48%; transform: translate(-50%, -50%); max-width: 39vw; }
@@ -2060,15 +2060,15 @@ button { -webkit-user-select: none; user-select: none; }
         padding-bottom: calc(var(--safe-bottom) + 90px);
     }
     .message-btn {
-        top: calc(var(--safe-top) + 68px);
+        top: calc(var(--safe-top) + 64px);
         bottom: auto;
     }
     .album-btn {
-        top: calc(var(--safe-top) + 68px);
+        top: calc(var(--safe-top) + 64px);
         bottom: auto;
     }
     .seat-btn {
-        top: calc(var(--safe-top) + 122px);
+        top: calc(var(--safe-top) + 120px);
         right: calc(var(--safe-right) + 14px);
         bottom: auto;
     }
