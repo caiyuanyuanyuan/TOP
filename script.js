@@ -45,6 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initMessageWall();       // 新增：留言墙
     initAlbum();             // 新增：相册回忆墙
     initTypingAnimation();   // 新增：开屏打字机
+    initBanquetPage();
 
         // 新郎新娘切换 + hover 光晕
     document.querySelectorAll('.name-toggle').forEach(el => {
@@ -669,4 +670,268 @@ function spawnFireworks() {
             }
         }, b * 400);
     }
+}
+
+// ====================== 婚宴席位页面逻辑｜JSONBin云端座位 ======================
+const BIN_ID = "6a561387f5f4af5e298cec09";
+const MASTER_KEY = "$2a$10$WvSYWhjxICFpZAf3.cxEbe/3BjIz1sFB22Pjqnq4uLBJawRI.pR0G"; // ← 这里替换成真实X-Master-Key
+
+// 桌位对应emoji映射
+const tableEmojiMap = {
+  left1: "🦋",
+  left2: "🐱",
+  left3: "🐷",
+  right1: "🐶",
+  right2: "😺",
+  right3: "🐰"
+};
+
+// 用户唯一ID
+let userId = localStorage.getItem("wedding_user_id");
+if (!userId) {
+  userId = "u_" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+  localStorage.setItem("wedding_user_id", userId);
+}
+
+let seatData = null;
+let pendingSeat = null; // {tableId, seatIndex}
+
+// 云端读取座位表
+async function loadRemoteSeat() {
+  try {
+    const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`);
+    const json = await res.json();
+    seatData = json.record;
+    localStorage.setItem("localSeatBackup", JSON.stringify(seatData));
+    renderAllSeat();
+  } catch (err) {
+    console.warn("云端读取失败，启用本地缓存", err);
+    const backup = localStorage.getItem("localSeatBackup");
+    if(backup) seatData = JSON.parse(backup);
+    showTip("网络异常，座位使用本地缓存");
+  }
+}
+
+// 云端写入座位表
+async function saveRemoteSeat() {
+  try {
+    await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+      method:"PUT",
+      headers:{
+        "Content-Type":"application/json",
+        "X-Access-Key": MASTER_KEY
+      },
+      body: JSON.stringify(seatData)
+    });
+    localStorage.setItem("localSeatBackup", JSON.stringify(seatData));
+    return true;
+  } catch(err){
+    console.error("保存座位失败",err);
+    showTip("座位保存失败，请稍后重试");
+    return false;
+  }
+}
+
+// 初始化婚宴页面
+function initBanquetPage(){
+    const seatBtn = document.getElementById("seatBtn");
+    const banquetPage = document.getElementById("banquetPage");
+    const backBtn = document.getElementById("banquetBackBtn");
+    const refreshBtn = document.getElementById("refreshSeatBtn");
+    const confirmModal = document.getElementById("seatConfirmModal");
+    const tipModal = document.getElementById("tipModal");
+    const confirmCancel = confirmModal.querySelector(".confirm-cancel");
+    const confirmOk = confirmModal.querySelector(".confirm-ok");
+    const tipOk = tipModal.querySelector(".tip-ok");
+
+    // 生成环形8个座位
+    document.querySelectorAll(".round-table").forEach(table=>{
+        const ringWrap = table.querySelector(".seats-ring");
+        const tableId = table.dataset.table;
+        const seatCount = 8;
+        const radius = 62;
+        for(let i=0;i<seatCount;i++){
+            const seat = document.createElement("div");
+            seat.className = "seat";
+            seat.dataset.table = tableId;
+            seat.dataset.seatIdx = i;
+            // 环形角度
+            const angle = (Math.PI * 2 / seatCount) * i;
+            const x = 50 + radius * Math.cos(angle);
+            const y = 50 + radius * Math.sin(angle);
+            seat.style.left = `${x}%`;
+            seat.style.top = `${y}%`;
+            ringWrap.appendChild(seat);
+
+            // 点击空位
+            seat.addEventListener("click",async ()=>{
+                const tid = seat.dataset.table;
+                const sid = Number(seat.dataset.seatIdx);
+                await loadRemoteSeat();
+                if(!seatData?.seats) return;
+                if(seatData.seats[tid][sid] !== null){
+                    showTip("该座位已被其他人占用！");
+                    return;
+                }
+                pendingSeat = {tableId:tid, seatIndex:sid};
+                openConfirm();
+            });
+            // 长按释放座位
+            let longTimer;
+            seat.addEventListener("mousedown",()=>{
+                longTimer = setTimeout(async ()=>{
+                    const tid = seat.dataset.table;
+                    const sid = Number(seat.dataset.seatIdx);
+                    if(seatData.seats[tid][sid] === userId){
+                        seatData.seats[tid][sid] = null;
+                        await saveRemoteSeat();
+                        renderAllSeat();
+                        showTip("已释放座位");
+                    }
+                },650);
+            });
+            seat.addEventListener("mouseup",()=>clearTimeout(longTimer));
+            seat.addEventListener("mouseleave",()=>clearTimeout(longTimer));
+        }
+    });
+seatBtn.addEventListener("click",async ()=>{
+    banquetPage.classList.remove("hidden");
+
+    // 每次打开页面先重置入场状态
+    resetEntrance();
+
+    await loadRemoteSeat();
+    startWalkAnimation();
+});
+    // 打开婚宴页面
+seatBtn.addEventListener("click",async ()=>{
+    banquetPage.classList.remove("hidden");
+    resetEntrance(); // 每次打开页面重置动画状态
+    await loadRemoteSeat();
+    startWalkAnimation();
+});
+
+    // 返回主页
+backBtn.addEventListener("click",()=>{
+    banquetPage.classList.add("hidden");
+    resetEntrance();
+});
+    // 手动刷新
+    refreshBtn.addEventListener("click",async ()=>{
+        await loadRemoteSeat();
+        showTip("座位刷新完成");
+    });
+
+function resetEntrance(){
+    const walkGroup = document.getElementById("walkMemberGroup");
+    const stageGroup = document.getElementById("stageMemberGroup");
+
+    walkGroup.style.display = "flex";
+    stageGroup.classList.add("hidden");
+    // 清除所有行走动画
+    document.querySelectorAll(".walk-emoji").forEach(em=>{
+        em.classList.remove("walk-move");
+        // 强制重置动画状态
+        void em.offsetWidth;
+    });
+}
+
+    // 舞台emoji点击特效
+    document.querySelectorAll(".stage-emoji").forEach(em=>{
+        em.addEventListener("click",(e)=>{
+            createClickEffect(e.clientX,e.clientY,"✨");
+        })
+    });
+
+    // 确认落座
+    confirmOk.onclick = async ()=>{
+        if(!pendingSeat) return;
+        const {tableId, seatIndex} = pendingSeat;
+        // 查询用户是否已有座位，清空旧座位
+        outer: for(let t in seatData.seats){
+            const arr = seatData.seats[t];
+            for(let i=0;i<arr.length;i++){
+                if(arr[i] === userId){
+                    arr[i] = null;
+                    break outer;
+                }
+            }
+        }
+        // 占用新座位
+        seatData.seats[tableId][seatIndex] = userId;
+        const ok = await saveRemoteSeat();
+        if(ok){
+            renderAllSeat();
+            showTip(`落座成功！${tableId === "left1" ? "福来方" : tableId === "left2" ? "棍方" : tableId === "left3" ? "极方" : tableId === "right1" ? "宝方" : tableId === "right2" ? "航方" : "铲方"}`);
+        }
+        confirmModal.classList.add("hidden");
+        pendingSeat = null;
+    };
+    confirmCancel.onclick = ()=>{
+        confirmModal.classList.add("hidden");
+        pendingSeat = null;
+    };
+    tipOk.onclick = ()=>tipModal.classList.add("hidden");
+}
+
+function openConfirm(){
+    document.getElementById("seatConfirmModal").classList.remove("hidden");
+}
+function showTip(text){
+    document.getElementById("tipText").textContent = text;
+    document.getElementById("tipModal").classList.remove("hidden");
+}
+
+function startWalkAnimation(){
+    const walkEmojis = document.querySelectorAll(".walk-emoji");
+    const stageMemberGroup = document.getElementById("stageMemberGroup");
+    const walkWrap = document.getElementById("walkMemberGroup");
+
+    // 逐个延迟启动，依次排队出发
+    walkEmojis.forEach((em, idx) => {
+        setTimeout(() => {
+            em.classList.add("walk-move");
+        }, idx * 400); // 间隔400ms依次出场，形成排队效果
+    });
+
+    // 总时长3秒动画结束后切换画面
+    setTimeout(() => {
+        walkWrap.style.display = "none";
+        stageMemberGroup.classList.remove("hidden");
+    }, 4000);
+}
+
+function resetWalkStatus(){
+    document.querySelectorAll(".walk-emoji").forEach(em=>{
+        em.classList.remove("walk-move");
+    })
+}
+
+// 渲染全部座位
+function renderAllSeat(){
+    if(!seatData?.seats) return;
+    document.querySelectorAll(".seat").forEach(seat=>{
+        const tid = seat.dataset.table;
+        const sid = Number(seat.dataset.seatIdx);
+        const occupier = seatData.seats[tid][sid];
+        if(occupier !== null){
+            seat.textContent = tableEmojiMap[tid];
+            seat.classList.add("occupied");
+        }else{
+            seat.textContent = "";
+            seat.classList.remove("occupied");
+        }
+    })
+}
+
+// 闪光特效
+function createClickEffect(x,y,text){
+    const container = document.querySelector(".click-effect-container");
+    const dom = document.createElement("div");
+    dom.className = "click-effect";
+    dom.textContent = text;
+    dom.style.left = x+"px";
+    dom.style.top = y+"px";
+    container.appendChild(dom);
+    setTimeout(()=>dom.remove(),700);
 }

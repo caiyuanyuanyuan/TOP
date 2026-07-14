@@ -1371,3 +1371,267 @@ html, body {
     .album-carousel { width: 88%; }
     .slide-caption { font-size: 12px; }
 }
+
+/* ====================== 婚宴页面样式 浅紫梦幻｜修复布局 ====================== */
+.seat-btn{
+    position: fixed;
+    right: 20px;
+    bottom: 180px;
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    border:none;
+    background: rgba(190,160,240,0.85);
+    color:#fff;
+    font-size:14px;
+    box-shadow: 0 0 14px #c4a8f0;
+    backdrop-filter: blur(6px);
+    z-index:99;
+    cursor:pointer;
+    transition:0.3s;
+}
+.seat-btn:hover{
+    transform:scale(1.08);
+    background: #b292e8;
+}
+
+.banquet-page{
+    position:fixed;
+    inset:0;
+    background: linear-gradient(160deg,#e8dfff,#d8c4f5,#c9b0ec);
+    z-index:200;
+    overflow:hidden;
+}
+.banquet-page.hidden{display:none;}
+.banquet-back-btn{
+    position:absolute;
+    top:14px;
+    left:14px;
+    border:none;
+    background:rgba(255,255,255,0.35);
+    backdrop-filter:blur(4px);
+    color:#442266;
+    padding:6px 14px;
+    border-radius:30px;
+    font-size:15px;
+    z-index:10;
+    cursor:pointer;
+}
+.refresh-seat-btn{
+    position:absolute;
+    top:14px;
+    left:140px;
+    border:none;
+    background:rgba(255,255,255,0.35);
+    backdrop-filter:blur(4px);
+    color:#442266;
+    padding:6px 14px;
+    border-radius:30px;
+    font-size:15px;
+    z-index:10;
+    cursor:pointer;
+}
+
+/* 舞台高度25vh */
+.wedding-stage{
+    height:25vh;
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    background: radial-gradient(ellipse at center, rgba(230,210,255,0.6) 0%, transparent 70%);
+    border-bottom: 1px solid rgba(255,255,255,0.3);
+}
+.stage-title{
+    font-size:22px;
+    color:#6b3896;
+    margin-bottom:16px;
+}
+.stage-member-group{
+    display:flex;
+    gap:22px;
+}
+.stage-emoji{
+    font-size:36px;
+    animation:dance 2s ease-in-out infinite alternate;
+    cursor:pointer;
+}
+.stage-emoji[data-id="0"]{animation-delay:0s;}
+.stage-emoji[data-id="1"]{animation-delay:0.2s;}
+.stage-emoji[data-id="2"]{animation-delay:0.4s;}
+.stage-emoji[data-id="3"]{animation-delay:0.6s;}
+.stage-emoji[data-id="4"]{animation-delay:0.8s;}
+@keyframes dance{
+    0%{transform: translateY(0) rotate(-6deg);}
+    100%{transform: translateY(-10px) rotate(6deg);}
+}
+
+.banquet-main-container{
+    height:75vh;
+    display:grid;
+    grid-template-columns: 1fr 20% 1fr;
+}
+.center-corridor{
+    position:relative;
+    border-left:1px dashed rgba(255,255,255,0.4);
+    border-right:1px dashed rgba(255,255,255,0.4);
+    background: radial-gradient(#e2d2f8 0, transparent 75%);
+}
+.walk-member-group{
+    position:absolute;
+    bottom:10px;
+    left:50%;
+    transform:translateX(-50%);
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+.walk-emoji{
+    font-size:32px;
+}
+/* 修改动画总时长：3秒 */
+.walk-move {
+    animation: walkToStageStep 3s linear forwards;
+}
+/* 持续向上行进+左右小幅摆动模拟走路，全程连贯移动 */
+@keyframes walkToStageStep {
+    0% {
+        bottom: 10px;
+        transform: translateX(-50%) rotate(-5deg);
+    }
+    25% {
+        bottom: 25%;
+        transform: translateX(-50%) rotate(4deg);
+    }
+    50% {
+        bottom: 50%;
+        transform: translateX(-50%) rotate(-4deg);
+    }
+    75% {
+        bottom: 75%;
+        transform: translateX(-50%) rotate(4deg);
+    }
+    100% {
+        bottom: calc(100% - 120px);
+        transform: translateX(-50%) rotate(0deg);
+    }
+}
+.table-column{
+    display:flex;
+    flex-direction:column;
+    justify-content: space-evenly;
+    align-items:center;
+    height:100%;
+    padding: 2vh 0;
+    gap: 3vh;
+}
+.round-table-wrap{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+}
+.table-name-tag{
+    font-size: max(13px,2vw);
+    color:#542b7c;
+    font-weight:bold;
+    margin-bottom: 6px;
+}
+.round-table{
+    width: min(13vh,130px);
+    height: min(13vh,130px);
+    position:relative;
+    background:rgba(255,255,255,0.28);
+    backdrop-filter:blur(6px);
+    border-radius:50%;
+    border:1px solid rgba(255,255,255,0.4);
+}
+.table-food-emoji{
+    position:absolute;
+    width:100%;
+    height:100%;
+    display:grid;
+    place-items:center;
+    font-size: max(10px,1.6vh);
+    text-align:center;
+    padding:10%;
+    z-index:1;
+}
+.table-circle{
+    width:100%;
+    height:100%;
+    position:absolute;
+    top:0;
+    left:0;
+}
+.seats-ring{
+    width:100%;
+    height:100%;
+    position:absolute;
+}
+.seat{
+    width: max(26px,3.2vh);
+    height: max(26px,3.2vh);
+    border-radius:50%;
+    background:rgba(255,255,255,0.4);
+    border:1px solid #d0b8ee;
+    display:grid;
+    place-items:center;
+    cursor:pointer;
+    font-size: max(16px,2vh);
+    transition:0.2s;
+    position:absolute;
+    transform:translate(-50%,-50%);
+    z-index:2;
+}
+.seat:hover{
+    background:#e1cff7;
+    transform:translate(-50%,-50%) scale(1.1);
+}
+.seat.occupied{
+    background:rgba(210,170,245,0.65);
+}
+
+/* 弹窗样式 */
+.seat-confirm-modal,.tip-modal{
+    position:absolute;
+    inset:0;
+    background:rgba(0,0,0,0.35);
+    display:grid;
+    place-items:center;
+    z-index:15;
+}
+.seat-confirm-modal.hidden,.tip-modal.hidden{display:none;}
+.confirm-card,.tip-card{
+    background:#fff;
+    padding:24px 28px;
+    border-radius:16px;
+    color:#442266;
+    text-align:center;
+}
+.confirm-btns{
+    margin-top:16px;
+    display:flex;
+    gap:16px;
+    justify-content:center;
+}
+.confirm-btns button,.tip-ok{
+    padding:6px 16px;
+    border-radius:20px;
+    border:none;
+    cursor:pointer;
+}
+.confirm-cancel{background:#ddd;}
+.confirm-ok,.tip-ok{background:#b492e8;color:white;}
+
+.click-effect{
+    position:absolute;
+    font-size:60px;
+    pointer-events:none;
+    animation:clickFlash 0.7s ease-out forwards;
+}
+@keyframes clickFlash{
+    0%{opacity:1;transform:scale(0.3);}
+    100%{opacity:0;transform:scale(1.6);}
+}
