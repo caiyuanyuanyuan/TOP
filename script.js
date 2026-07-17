@@ -18,13 +18,154 @@ const safeStorage = (() => {
     };
 })();
 
+// ========== Supabase 云端配置 ==========
+// 1. 在 Supabase 创建项目并执行同目录的 supabase-setup.sql
+// 2. 开启 Authentication > Providers > Anonymous Sign-Ins
+// 3. 将下面两项替换成项目设置里的 Project URL 和 Publishable Key（或 legacy anon key）
+const SUPABASE_URL = 'https://tsydxgednpxyqnbzzcpu.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable__2aJq5w8cm7j1OH1BGRAzA_IBUhQf_9';
+const CLOUD_CONFIGURED = !SUPABASE_URL.includes('YOUR_PROJECT_ID')
+    && !SUPABASE_PUBLISHABLE_KEY.includes('YOUR_SUPABASE');
+let cloud = null;
+let supabaseSdkPromise = null;
+
+function initSupabaseCloud() {
+    if (cloud || !CLOUD_CONFIGURED) return cloud;
+    const supabaseFactory = window.supabase?.createClient;
+    if (typeof supabaseFactory !== 'function') return null;
+    cloud = supabaseFactory(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false }
+    });
+    return cloud;
+}
+
+function loadSupabaseSdk() {
+    if (!CLOUD_CONFIGURED) return Promise.resolve(null);
+    if (initSupabaseCloud()) return Promise.resolve(cloud);
+    if (supabaseSdkPromise) return supabaseSdkPromise;
+    supabaseSdkPromise = new Promise(resolve => {
+        const sdk = document.createElement('script');
+        sdk.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+        sdk.async = true;
+        sdk.onload = () => resolve(initSupabaseCloud());
+        sdk.onerror = () => {
+            console.warn('Supabase SDK 加载失败，页面继续使用本地模式。');
+            resolve(null);
+        };
+        document.head.appendChild(sdk);
+    });
+    return supabaseSdkPromise;
+}
+
+window.initSupabaseCloud = initSupabaseCloud;
+
+let cloudSessionPromise = null;
+let currentCloudUserId = null;
+
+async function ensureCloudSession() {
+    if (!cloud) return null;
+    if (cloudSessionPromise) return cloudSessionPromise;
+    cloudSessionPromise = (async () => {
+        const { data: sessionData, error: sessionError } = await cloud.auth.getSession();
+        if (sessionError) throw sessionError;
+        let session = sessionData.session;
+        if (!session) {
+            const { data, error } = await cloud.auth.signInAnonymously();
+            if (error) throw error;
+            session = data.session;
+        }
+        currentCloudUserId = session?.user?.id || null;
+        if (currentCloudUserId) {
+            userId = currentCloudUserId;
+            safeStorage.setItem('wedding_user_id', currentCloudUserId);
+        }
+        return session;
+    })().catch(error => {
+        console.warn('Supabase 匿名登录失败，将使用本地模式：', error);
+        cloudSessionPromise = null;
+        return null;
+    });
+    return cloudSessionPromise;
+}
+
+function cloudStatusText(text, state = '') {
+    const status = document.getElementById('inviteCloudStatus');
+    if (!status) return;
+    status.textContent = text;
+    status.dataset.state = state;
+}
+
+function getInviteeName() {
+    return (document.getElementById('inviteeInput')?.value || safeStorage.getItem('top_invitee_name') || '').trim();
+}
+
+async function saveInviteeNameToCloud(rawName) {
+    const name = String(rawName || '').trim().slice(0, 12);
+    safeStorage.setItem('top_invitee_name', name);
+    if (!name) {
+        cloudStatusText('请填写昵称后再进入心选页面', 'warning');
+        return false;
+    }
+    if (!cloud) {
+        cloudStatusText('当前为本地预览，配置 Supabase 后可多人共享', 'local');
+        return true;
+    }
+    cloudStatusText('正在同步昵称…', 'syncing');
+    const session = await ensureCloudSession();
+    if (!session || !currentCloudUserId) {
+        cloudStatusText('云端连接失败，已保存在本机', 'warning');
+        return false;
+    }
+    const payload = { user_id: currentCloudUserId, username: name, updated_at: new Date().toISOString() };
+    const { error } = await cloud.from('wedding_guests').upsert(payload, { onConflict: 'user_id' });
+    if (error) {
+        console.warn('昵称同步失败：', error);
+        cloudStatusText('同步失败，已保存在本机', 'warning');
+        return false;
+    }
+    await cloud.from('heart_choices')
+        .update({ username: name, updated_at: new Date().toISOString() })
+        .eq('user_id', currentCloudUserId);
+    cloudStatusText('已同步到婚礼星球 ✦', 'success');
+    return true;
+}
+
+async function loadInviteeNameFromCloud() {
+    if (!cloud) {
+        cloudStatusText('当前为本地预览，配置 Supabase 后可多人共享', 'local');
+        return;
+    }
+    const session = await ensureCloudSession();
+    if (!session || !currentCloudUserId) return;
+    const { data, error } = await cloud.from('wedding_guests')
+        .select('username')
+        .eq('user_id', currentCloudUserId)
+        .maybeSingle();
+    if (error) {
+        console.warn('读取云端昵称失败：', error);
+        cloudStatusText('云端昵称读取失败，继续使用本地昵称', 'warning');
+        return;
+    }
+    if (data?.username) {
+        const input = document.getElementById('inviteeInput');
+        if (input) input.value = data.username;
+        safeStorage.setItem('top_invitee_name', data.username);
+    }
+    cloudStatusText('已连接婚礼星球 ✦', 'success');
+}
+
+async function initCloudSync() {
+    await loadInviteeNameFromCloud();
+}
+
+
 // ========== 成员数据 ==========
 const members = [
-    { id: 0, name: '朱志鑫', color: '#FFD700', color2: '#FFA500' },
-    { id: 1, name: '张泽禹', color: '#32CD32', color2: '#228B22' },
-    { id: 2, name: '张极',   color: '#FF8C00', color2: '#FF6347' },
-    { id: 3, name: '左航',   color: '#1E90FF', color2: '#4169E1' },
-    { id: 4, name: '苏新皓', color: '#DC143C', color2: '#B22222' }
+    { id: 0, key: 'zzx', name: '朱志鑫', image: 'zzx.jpg', color: '#FFD700', color2: '#FFA500' },
+    { id: 1, key: 'zzy', name: '张泽禹', image: 'zzy.jpg', color: '#32CD32', color2: '#228B22' },
+    { id: 2, key: 'zj', name: '张极', image: 'zj.jpg', color: '#FF8C00', color2: '#FF6347' },
+    { id: 3, key: 'zh', name: '左航', image: 'zh.jpg', color: '#1E90FF', color2: '#4169E1' },
+    { id: 4, key: 'sxh', name: '苏新皓', image: 'sxh.jpg', color: '#DC143C', color2: '#B22222' }
 ];
 
 // ========== 回忆墙文案 ==========
@@ -82,6 +223,8 @@ document.addEventListener('DOMContentLoaded', function() {
     initAlbum();             // 新增：相册回忆墙
     initTypingAnimation();   // 新增：开屏打字机
     initBanquetPage();
+    initHeartPicker();
+    loadSupabaseSdk().then(() => initCloudSync());
 
         // 新郎新娘切换 + hover 光晕
     document.querySelectorAll('.name-toggle').forEach(el => {
@@ -464,20 +607,29 @@ function spawnPetals() {
 
 // ========== 请柬侧边栏 ==========
 function initSidebar() {
+    const sidebar = document.getElementById('inviteSidebar');
+    const inviteeInput = document.getElementById('inviteeInput');
+    let saveTimer = null;
+
     document.getElementById('inviteBtn').addEventListener('click', function(e) {
         e.stopPropagation();
-        document.getElementById('inviteSidebar').classList.toggle('open');
+        sidebar.classList.toggle('open');
     });
     document.getElementById('inviteClose').addEventListener('click', function(e) {
         e.stopPropagation();
-        document.getElementById('inviteSidebar').classList.remove('open');
+        sidebar.classList.remove('open');
+        saveInviteeNameToCloud(inviteeInput.value);
     });
-    const inviteeInput = document.getElementById('inviteeInput');
+
     const saved = safeStorage.getItem('top_invitee_name');
     if (saved) inviteeInput.value = saved;
     inviteeInput.addEventListener('input', function() {
-         safeStorage.setItem('top_invitee_name', this.value);
-});
+        safeStorage.setItem('top_invitee_name', this.value);
+        cloudStatusText('昵称尚未同步', 'syncing');
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(() => saveInviteeNameToCloud(this.value), 650);
+    });
+    inviteeInput.addEventListener('blur', () => saveInviteeNameToCloud(inviteeInput.value));
 }
 
 // ========== 开屏打字机动画 ==========
@@ -811,9 +963,7 @@ function spawnFireworks() {
     }
 }
 
-// ====================== 婚宴席位页面逻辑｜JSONBin云端座位 ======================
-const BIN_ID = "6a561387f5f4af5e298cec09";
-const MASTER_KEY = "$2a$10$WvSYWhjxICFpZAf3.cxEbe/3BjIz1sFB22Pjqnq4uLBJawRI.pR0G";
+// ====================== 婚宴席位页面逻辑｜Supabase 云端座位 ======================
 const TABLE_IDS = ['left1', 'left2', 'left3', 'right1', 'right2', 'right3'];
 
 const tableEmojiMap = {
@@ -853,46 +1003,84 @@ function normalizeSeatData(data) {
 }
 
 async function loadRemoteSeat({ silent = false } = {}) {
-    try {
-        const response = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, { cache: 'no-store' });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const json = await response.json();
-        seatData = normalizeSeatData(json.record);
-        safeStorage.setItem("localSeatBackup", JSON.stringify(seatData));
-        renderAllSeat();
-        return true;
-    } catch (error) {
-        console.warn("云端读取失败，启用本地缓存", error);
+    if (!cloud) {
         try {
-            seatData = normalizeSeatData(JSON.parse(safeStorage.getItem("localSeatBackup") || 'null'));
+            seatData = normalizeSeatData(JSON.parse(safeStorage.getItem('localSeatBackup') || 'null'));
         } catch (_) {
             seatData = createEmptySeatData();
         }
         renderAllSeat();
-        if (!silent) showTip("网络异常，当前显示本地座位缓存");
+        if (!silent) showTip('当前为本地预览，配置 Supabase 后可共享座位');
+        return false;
+    }
+    try {
+        const session = await ensureCloudSession();
+        if (!session) throw new Error('未建立匿名会话');
+        const { data, error } = await cloud.from('banquet_seats')
+            .select('table_id,seat_index,user_id');
+        if (error) throw error;
+        seatData = createEmptySeatData();
+        (data || []).forEach(row => {
+            if (TABLE_IDS.includes(row.table_id) && Number.isInteger(row.seat_index)
+                && row.seat_index >= 0 && row.seat_index < 8) {
+                seatData.seats[row.table_id][row.seat_index] = row.user_id;
+            }
+        });
+        safeStorage.setItem('localSeatBackup', JSON.stringify(seatData));
+        renderAllSeat();
+        return true;
+    } catch (error) {
+        console.warn('云端座位读取失败，启用本地缓存：', error);
+        try {
+            seatData = normalizeSeatData(JSON.parse(safeStorage.getItem('localSeatBackup') || 'null'));
+        } catch (_) {
+            seatData = createEmptySeatData();
+        }
+        renderAllSeat();
+        if (!silent) showTip('网络异常，当前显示本地座位缓存');
         return false;
     }
 }
 
-async function saveRemoteSeat() {
-    try {
-        const response = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-                "X-Master-Key": MASTER_KEY
-            },
-            body: JSON.stringify(seatData)
+async function claimRemoteSeat(tableId, seatIndex) {
+    if (!cloud) {
+        seatData = normalizeSeatData(seatData);
+        if (seatData.seats[tableId][seatIndex] !== null) return { ok: false, message: 'occupied' };
+        TABLE_IDS.forEach(id => {
+            seatData.seats[id] = seatData.seats[id].map(value => value === userId ? null : value);
         });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        safeStorage.setItem("localSeatBackup", JSON.stringify(seatData));
-        return true;
-    } catch (error) {
-        console.error("保存座位失败", error);
-        safeStorage.setItem("localSeatBackup", JSON.stringify(seatData));
-        showTip("云端保存失败，已保留本地记录，请稍后刷新重试");
-        return false;
+        seatData.seats[tableId][seatIndex] = userId;
+        safeStorage.setItem('localSeatBackup', JSON.stringify(seatData));
+        return { ok: true, local: true };
     }
+    const session = await ensureCloudSession();
+    if (!session) return { ok: false, message: 'offline' };
+    const { data, error } = await cloud.rpc('claim_banquet_seat', {
+        p_table_id: tableId,
+        p_seat_index: seatIndex
+    });
+    if (error) {
+        console.warn('落座失败：', error);
+        return { ok: false, message: error.message };
+    }
+    return data || { ok: false };
+}
+
+async function releaseRemoteSeat(tableId, seatIndex) {
+    if (!cloud) {
+        seatData = normalizeSeatData(seatData);
+        if (seatData.seats[tableId][seatIndex] === userId) {
+            seatData.seats[tableId][seatIndex] = null;
+            safeStorage.setItem('localSeatBackup', JSON.stringify(seatData));
+            return { ok: true, local: true };
+        }
+        return { ok: false };
+    }
+    const session = await ensureCloudSession();
+    if (!session) return { ok: false, message: 'offline' };
+    const { data, error } = await cloud.rpc('release_banquet_seat');
+    if (error) return { ok: false, message: error.message };
+    return data || { ok: true };
 }
 
 function initBanquetPage() {
@@ -947,10 +1135,9 @@ function initBanquetPage() {
                     const sid = Number(seat.dataset.seatIdx);
                     if (seatData?.seats?.[tid]?.[sid] === userId) {
                         longPressTriggered = true;
-                        seatData.seats[tid][sid] = null;
-                        await saveRemoteSeat();
-                        renderAllSeat();
-                        showTip("已释放你的座位");
+                        const result = await releaseRemoteSeat(tid, sid);
+                        await loadRemoteSeat({ silent: true });
+                        showTip(result.ok ? "已释放你的座位" : "座位释放失败，请稍后重试");
                     }
                 }, 720);
             });
@@ -986,23 +1173,20 @@ function initBanquetPage() {
 
     confirmOk.onclick = async () => {
         if (!pendingSeat) return;
-        seatData = normalizeSeatData(seatData);
         const { tableId, seatIndex } = pendingSeat;
-        TABLE_IDS.forEach(id => {
-            seatData.seats[id] = seatData.seats[id].map(value => value === userId ? null : value);
-        });
-        if (seatData.seats[tableId][seatIndex] !== null) {
-            confirmModal.classList.add("hidden");
-            pendingSeat = null;
-            showTip("座位刚刚被占用，请重新选择");
-            return;
-        }
-        seatData.seats[tableId][seatIndex] = userId;
-        const saved = await saveRemoteSeat();
-        renderAllSeat();
-        showTip(saved ? `落座成功！欢迎来到${tableDisplayName(tableId)}` : "已在本地记录座位，云端稍后再同步");
+        confirmOk.disabled = true;
+        const result = await claimRemoteSeat(tableId, seatIndex);
+        await loadRemoteSeat({ silent: true });
+        confirmOk.disabled = false;
         confirmModal.classList.add("hidden");
         pendingSeat = null;
+        if (result.ok) {
+            showTip(`落座成功！欢迎来到${tableDisplayName(tableId)}`);
+        } else if (result.message === 'occupied') {
+            showTip("座位刚刚被其他人占用，请重新选择");
+        } else {
+            showTip("云端落座失败，请检查网络后重试");
+        }
     };
 
     confirmCancel.onclick = () => {
@@ -1161,4 +1345,418 @@ function createClickEffect(x, y, text) {
     element.style.top = y + "px";
     container.appendChild(element);
     setTimeout(() => element.remove(), 700);
+}
+
+
+// ====================== 心选之人页面 ======================
+const HEART_CATEGORIES = [
+    { key: 'parents', title: '你的父母是', roles: ['爸爸', '妈妈'] },
+    { key: 'daughter', title: '你的女儿是', roles: ['女儿'] },
+    { key: 'son', title: '你的儿子是', roles: ['儿子'] },
+    { key: 'wife', title: '你的老婆是', roles: ['老婆'] },
+    { key: 'husband', title: '你的老公是', roles: ['老公'] }
+];
+const RELATION_ORDER = ['爸爸', '妈妈', '女儿', '儿子', '老婆', '老公'];
+let activeHeartCategory = null;
+let heartSlotsState = [];
+let completedHeartRoles = new Set();
+let lastHeartCategoryKey = safeStorage.getItem('last_heart_category') || '';
+let relationScrollTimers = [];
+
+function initHeartPicker() {
+    const openBtn = document.getElementById('heartPickBtn');
+    const backBtn = document.getElementById('heartBackBtn');
+    const nextBtn = document.getElementById('heartNextRoleBtn');
+    const heartPage = document.getElementById('heartPage');
+    const mainPage = document.getElementById('mainPage');
+
+    openBtn.addEventListener('click', async event => {
+        event.stopPropagation();
+        const name = getInviteeName();
+        if (!name) {
+            document.getElementById('inviteSidebar').classList.add('open');
+            document.getElementById('inviteeInput').focus();
+            cloudStatusText('请先填写昵称，再来开启命运轮盘 ✦', 'warning');
+            return;
+        }
+        await saveInviteeNameToCloud(name);
+        await loadCompletedHeartRoles();
+        mainPage.classList.add('hidden');
+        heartPage.classList.remove('hidden');
+        startNewHeartRound();
+    });
+
+    backBtn.addEventListener('click', () => {
+        clearRelationScrollTimers();
+        heartPage.classList.add('hidden');
+        mainPage.classList.remove('hidden');
+    });
+    nextBtn.addEventListener('click', () => startNewHeartRound());
+
+    document.getElementById('heartCategoryTabs').addEventListener('click', event => {
+        const button = event.target.closest('button[data-heart-category]');
+        if (!button) return;
+        startNewHeartRound(button.dataset.heartCategory);
+    });
+
+    document.getElementById('heartSlots').addEventListener('click', event => {
+        const button = event.target.closest('button[data-heart-action]');
+        if (!button) return;
+        const index = Number(button.closest('[data-heart-slot]')?.dataset.heartSlot);
+        if (!Number.isInteger(index)) return;
+        const action = button.dataset.heartAction;
+        if (action === 'spin') spinHeartSlot(index);
+        if (action === 'satisfy') satisfyHeartSlot(index);
+        if (action === 'reject') rejectHeartSlot(index);
+        if (action === 'unlock') unlockHeartSlot(index);
+        if (action === 'reset') resetHeartHistory(index);
+    });
+}
+
+async function loadCompletedHeartRoles() {
+    const activeUserId = currentCloudUserId || userId;
+    let rows = [];
+    if (cloud) {
+        const session = await ensureCloudSession();
+        if (session && currentCloudUserId) {
+            const { data, error } = await cloud.from('heart_choices')
+                .select('relation_type')
+                .eq('user_id', currentCloudUserId);
+            if (!error) rows = data || [];
+            else console.warn('读取已选身份失败：', error);
+        }
+    }
+    if (!rows.length) {
+        rows = readLocalHeartChoices().filter(item => item.user_id === activeUserId);
+    }
+    completedHeartRoles = new Set(rows.map(item => item.relation_type));
+    renderHeartCategoryTabs();
+}
+
+function chooseHeartCategory() {
+    const unfinished = HEART_CATEGORIES.filter(category =>
+        category.roles.some(role => !completedHeartRoles.has(role))
+        && category.key !== lastHeartCategoryKey
+    );
+    const pool = unfinished.length
+        ? unfinished
+        : HEART_CATEGORIES.filter(item => item.key !== lastHeartCategoryKey);
+    return pool[Math.floor(Math.random() * pool.length)] || HEART_CATEGORIES[0];
+}
+
+function renderHeartCategoryTabs() {
+    const container = document.getElementById('heartCategoryTabs');
+    if (!container) return;
+    container.innerHTML = HEART_CATEGORIES.map(category => {
+        const complete = category.roles.every(role => completedHeartRoles.has(role));
+        const active = activeHeartCategory?.key === category.key;
+        return `<button type="button" data-heart-category="${category.key}" class="heart-category-tab ${active ? 'is-active' : ''} ${complete ? 'is-complete' : ''}">
+            <span>${category.roles.join('＋')}</span>${complete ? '<b>✓</b>' : ''}
+        </button>`;
+    }).join('');
+}
+
+function startNewHeartRound(categoryKey = '') {
+    clearRelationScrollTimers();
+    activeHeartCategory = HEART_CATEGORIES.find(item => item.key === categoryKey) || chooseHeartCategory();
+    lastHeartCategoryKey = activeHeartCategory.key;
+    safeStorage.setItem('last_heart_category', lastHeartCategoryKey);
+    heartSlotsState = activeHeartCategory.roles.map(role => ({
+        role,
+        history: new Set(),
+        current: null,
+        satisfied: false,
+        rejected: false,
+        spinning: false,
+        exhausted: false
+    }));
+    document.getElementById('heartRoleTitle').textContent = activeHeartCategory.title;
+    document.getElementById('heartResultPanel').classList.add('hidden');
+    const nextButton = document.getElementById('heartNextRoleBtn');
+    nextButton.classList.add('hidden');
+    nextButton.textContent = completedHeartRoles.size >= RELATION_ORDER.length ? '继续改选其他身份' : '随机抽下一种身份';
+    renderHeartCategoryTabs();
+    document.getElementById('heartRoundTip').textContent = activeHeartCategory.roles.length === 2
+        ? '爸爸和妈妈分别抽取；满意的一边会锁定，另一边可以继续重抽。'
+        : '点击“开始”，照片会循环转动；不满意时再次开始，旧结果不会重复。';
+    renderHeartSlots();
+}
+
+function renderHeartSlots() {
+    const container = document.getElementById('heartSlots');
+    container.classList.toggle('double', heartSlotsState.length === 2);
+    container.innerHTML = heartSlotsState.map((slot, index) => {
+        const member = slot.current;
+        const status = slot.spinning ? '命运转动中…'
+            : member ? member.name
+            : '等待星光降落';
+        const startLabel = slot.current ? '再次循环' : '开始';
+        const decisionHidden = !slot.current || slot.spinning || slot.satisfied;
+        const startDisabled = slot.spinning || slot.satisfied || slot.exhausted;
+        return `
+            <article class="destiny-slot ${slot.satisfied ? 'is-satisfied' : ''} ${slot.spinning ? 'is-spinning' : ''}" data-heart-slot="${index}">
+                <div class="destiny-role"><span>你的</span><strong>${slot.role}</strong></div>
+                <div class="destiny-window">
+                    <div class="destiny-halo"></div>
+                    ${member
+                        ? `<img src="${member.image}" alt="${member.name}">`
+                        : '<div class="destiny-placeholder">✦</div>'}
+                    <div class="destiny-shine"></div>
+                </div>
+                <div class="destiny-name">${escapeHtml(status)}</div>
+                <button class="destiny-start" data-heart-action="spin" type="button" ${startDisabled ? 'disabled' : ''}>${slot.spinning ? '转动中…' : startLabel}</button>
+                <div class="destiny-decisions ${decisionHidden ? 'hidden' : ''}">
+                    <button class="destiny-satisfy" data-heart-action="satisfy" type="button">满意</button>
+                    <button class="destiny-reject" data-heart-action="reject" type="button">不满意</button>
+                </div>
+                ${slot.satisfied ? '<div class="destiny-locked">✓ 已满意 <button data-heart-action="unlock" type="button">改选</button></div>' : ''}
+                ${slot.exhausted ? '<div class="destiny-exhausted">新的候选已经全部看过<br><button data-heart-action="reset" type="button">重新洗牌</button></div>' : ''}
+            </article>`;
+    }).join('');
+}
+
+function candidateMembersForSlot(index) {
+    const slot = heartSlotsState[index];
+    const otherCurrentIds = new Set(heartSlotsState
+        .filter((_, otherIndex) => otherIndex !== index)
+        .map(item => item.current?.id)
+        .filter(Number.isInteger));
+    return members.filter(member => !slot.history.has(member.id) && !otherCurrentIds.has(member.id));
+}
+
+function spinHeartSlot(index) {
+    const slot = heartSlotsState[index];
+    if (!slot || slot.spinning || slot.satisfied) return;
+    let candidates = candidateMembersForSlot(index);
+    if (!candidates.length) {
+        slot.exhausted = true;
+        renderHeartSlots();
+        showHeartToast(`${slot.role}的新候选已经全部出现过啦`);
+        return;
+    }
+
+    slot.spinning = true;
+    slot.rejected = false;
+    renderHeartSlots();
+    const slotElement = document.querySelector(`[data-heart-slot="${index}"]`);
+    const imageWindow = slotElement?.querySelector('.destiny-window');
+    const nameElement = slotElement?.querySelector('.destiny-name');
+    let frame = 0;
+    const cycleTimer = setInterval(() => {
+        candidates = candidateMembersForSlot(index);
+        if (!candidates.length) return;
+        const preview = candidates[frame % candidates.length];
+        imageWindow.innerHTML = `<div class="destiny-halo"></div><img src="${preview.image}" alt="${preview.name}"><div class="destiny-shine"></div>`;
+        nameElement.textContent = '命运转动中…';
+        frame += 1;
+    }, 90);
+
+    setTimeout(() => {
+        clearInterval(cycleTimer);
+        const finalCandidates = candidateMembersForSlot(index);
+        if (!finalCandidates.length) {
+            slot.spinning = false;
+            slot.exhausted = true;
+            renderHeartSlots();
+            return;
+        }
+        const chosen = finalCandidates[Math.floor(Math.random() * finalCandidates.length)];
+        slot.current = chosen;
+        slot.history.add(chosen.id);
+        slot.spinning = false;
+        slot.exhausted = candidateMembersForSlot(index).length === 0;
+        renderHeartSlots();
+    }, 1750 + Math.random() * 450);
+}
+
+function satisfyHeartSlot(index) {
+    const slot = heartSlotsState[index];
+    if (!slot?.current) return;
+    slot.satisfied = true;
+    slot.rejected = false;
+    renderHeartSlots();
+    if (heartSlotsState.every(item => item.satisfied)) finalizeHeartRound();
+}
+
+function rejectHeartSlot(index) {
+    const slot = heartSlotsState[index];
+    if (!slot?.current) return;
+    slot.satisfied = false;
+    slot.rejected = true;
+    slot.exhausted = candidateMembersForSlot(index).length === 0;
+    renderHeartSlots();
+    if (!slot.exhausted) showHeartToast(`已排除这次的${slot.role}，点击“再次循环”继续`);
+}
+
+function unlockHeartSlot(index) {
+    const slot = heartSlotsState[index];
+    if (!slot) return;
+    slot.satisfied = false;
+    slot.rejected = true;
+    slot.exhausted = candidateMembersForSlot(index).length === 0;
+    document.getElementById('heartResultPanel').classList.add('hidden');
+    document.getElementById('heartNextRoleBtn').classList.add('hidden');
+    renderHeartSlots();
+}
+
+function resetHeartHistory(index) {
+    const slot = heartSlotsState[index];
+    if (!slot) return;
+    slot.history = new Set(slot.current ? [slot.current.id] : []);
+    slot.exhausted = false;
+    slot.satisfied = false;
+    slot.rejected = true;
+    renderHeartSlots();
+    showHeartToast(`${slot.role}候选已重新洗牌，当前结果仍会被排除`);
+}
+
+async function finalizeHeartRound() {
+    const username = getInviteeName() || '神秘宾客';
+    document.getElementById('heartRoundTip').textContent = '心动答案已写入婚礼星球 ✦';
+    await saveHeartChoices(username);
+    heartSlotsState.forEach(slot => completedHeartRoles.add(slot.role));
+    renderHeartCategoryTabs();
+    await renderHeartResults(username);
+    document.getElementById('heartResultPanel').classList.remove('hidden');
+    const nextButton = document.getElementById('heartNextRoleBtn');
+    nextButton.textContent = completedHeartRoles.size >= RELATION_ORDER.length ? '六种身份都已选好 · 继续改选' : '继续选择其他身份';
+    nextButton.classList.remove('hidden');
+    document.getElementById('heartResultPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+async function saveHeartChoices(username) {
+    const records = heartSlotsState.map(slot => ({
+        user_id: currentCloudUserId || userId,
+        username,
+        relation_type: slot.role,
+        member_key: slot.current.key,
+        member_name: slot.current.name,
+        updated_at: new Date().toISOString()
+    }));
+
+    if (cloud) {
+        const session = await ensureCloudSession();
+        if (session && currentCloudUserId) {
+            records.forEach(record => { record.user_id = currentCloudUserId; });
+            const { error } = await cloud.from('heart_choices')
+                .upsert(records, { onConflict: 'user_id,relation_type' });
+            if (!error) return true;
+            console.warn('心选结果同步失败：', error);
+            showHeartToast('云端同步失败，结果已保存在本机');
+        }
+    }
+
+    const local = readLocalHeartChoices();
+    records.forEach(record => {
+        const index = local.findIndex(item => item.user_id === record.user_id && item.relation_type === record.relation_type);
+        if (index >= 0) local[index] = record;
+        else local.push(record);
+    });
+    safeStorage.setItem('heart_choices_local', JSON.stringify(local));
+    return false;
+}
+
+function readLocalHeartChoices() {
+    try {
+        const value = JSON.parse(safeStorage.getItem('heart_choices_local') || '[]');
+        return Array.isArray(value) ? value : [];
+    } catch (_) {
+        return [];
+    }
+}
+
+async function fetchMemberRelations(memberKey) {
+    const activeUserId = currentCloudUserId || userId;
+    if (cloud) {
+        const session = await ensureCloudSession();
+        if (session) {
+            const { data, error } = await cloud.from('heart_choices')
+                .select('user_id,username,relation_type,member_key,member_name')
+                .eq('member_key', memberKey)
+                .neq('user_id', activeUserId);
+            if (!error) return data || [];
+            console.warn('读取关系簿失败：', error);
+        }
+    }
+    return readLocalHeartChoices().filter(item => item.member_key === memberKey && item.user_id !== activeUserId);
+}
+
+async function renderHeartResults(username) {
+    clearRelationScrollTimers();
+    const list = document.getElementById('heartResultList');
+    document.getElementById('heartResultTitle').textContent = `${username}的心选结果`;
+    list.innerHTML = '<div class="heart-loading">正在翻阅婚礼关系簿…</div>';
+    const panels = [];
+    for (const slot of heartSlotsState) {
+        const rows = await fetchMemberRelations(slot.current.key);
+        panels.push(buildMemberRelationPanel(username, slot, rows));
+    }
+    list.innerHTML = panels.join('');
+    requestAnimationFrame(setupRelationAutoScroll);
+}
+
+function buildMemberRelationPanel(username, slot, rows) {
+    const groups = RELATION_ORDER.map((role, order) => ({
+        role,
+        order,
+        names: rows.filter(row => row.relation_type === role).map(row => row.username).filter(Boolean)
+    })).filter(group => group.names.length)
+      .sort((a, b) => b.names.length - a.names.length || a.order - b.order);
+
+    const relationHtml = groups.length
+        ? groups.map(group => `
+            <section class="relation-group">
+                <div class="relation-group-title"><strong>${group.role}</strong><span>${group.names.length} 人</span></div>
+                <div class="relation-name-list">${group.names.map(name => `<span>${escapeHtml(name)}的${group.role}</span>`).join('')}</div>
+            </section>`).join('')
+        : '<div class="relation-empty">目前还没有其他人抽到他<br>你是这段关系的第一颗星 ✦</div>';
+
+    return `
+        <article class="heart-final-card">
+            <div class="heart-final-person">
+                <img src="${slot.current.image}" alt="${slot.current.name}">
+                <div><p>${escapeHtml(username)}的${slot.role}是</p><h3>${slot.current.name}</h3></div>
+            </div>
+            <div class="heart-also-title">他还是……</div>
+            <div class="relation-loop" tabindex="0">
+                <div class="relation-loop-track">${relationHtml}</div>
+            </div>
+        </article>`;
+}
+
+function setupRelationAutoScroll() {
+    document.querySelectorAll('.relation-loop').forEach(viewport => {
+        const track = viewport.querySelector('.relation-loop-track');
+        if (!track || track.scrollHeight <= viewport.clientHeight + 8) return;
+        track.insertAdjacentHTML('beforeend', track.innerHTML);
+        let paused = false;
+        ['pointerenter', 'pointerdown', 'touchstart', 'focusin'].forEach(type => viewport.addEventListener(type, () => { paused = true; }, { passive: true }));
+        ['pointerleave', 'pointerup', 'touchend', 'focusout'].forEach(type => viewport.addEventListener(type, () => { paused = false; }, { passive: true }));
+        const timer = setInterval(() => {
+            if (paused) return;
+            viewport.scrollTop += 1;
+            if (viewport.scrollTop >= track.scrollHeight / 2) viewport.scrollTop = 0;
+        }, 42);
+        relationScrollTimers.push(timer);
+    });
+}
+
+function clearRelationScrollTimers() {
+    relationScrollTimers.forEach(clearInterval);
+    relationScrollTimers = [];
+}
+
+function showHeartToast(text) {
+    const toast = document.getElementById('heartToast');
+    if (!toast) return;
+    toast.textContent = text;
+    toast.classList.remove('hidden');
+    clearTimeout(showHeartToast.timer);
+    showHeartToast.timer = setTimeout(() => toast.classList.add('hidden'), 2600);
+}
+
+function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>'"]/g, char => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+    })[char]);
 }

@@ -77,6 +77,7 @@
         <!-- 右下角相册回忆墙按钮 -->
         <button id="albumBtn" class="album-btn" title="回忆墙">📷</button>
 <button id="seatBtn" class="seat-btn" type="button" title="去入席">入席</button>
+        <button id="heartPickBtn" class="heart-pick-btn" type="button">💜 去挑选你的心选之人</button>
         <!-- 摩天轮容器 -->
         <div class="ferris-container">
             <div id="ferrisWheel" class="ferris-wheel">
@@ -184,6 +185,7 @@
                     </span><br>
                     您来参加我们的婚礼
                 </p>
+                <p id="inviteCloudStatus" class="invite-cloud-status">昵称将同步到婚礼星球</p>
                 <ul class="invite-grooms">
                     <li style="color:#FFD700">朱志鑫</li>
                     <li style="color:#32CD32">张泽禹</li>
@@ -369,6 +371,67 @@
     <!-- 点击闪光特效 -->
     <div class="click-effect-container"></div>
 </div>
+
+
+<!-- ========== 心选之人页面 ========== -->
+<div id="heartPage" class="heart-page hidden" aria-live="polite">
+    <button id="heartBackBtn" class="heart-back-btn" type="button">返回婚礼星球</button>
+    <div class="heart-bg-orb orb-one"></div>
+    <div class="heart-bg-orb orb-two"></div>
+    <div class="heart-bg-orb orb-three"></div>
+    <div class="heart-sparkles" aria-hidden="true">
+        <span>✦</span><span>✧</span><span>⋆</span><span>✦</span><span>✧</span><span>⋆</span>
+    </div>
+
+    <main class="heart-shell">
+        <p class="heart-kicker">DESTINY · 心动匹配</p>
+        <h1>去挑选你的心选之人</h1>
+        <p class="heart-intro">让星光替你转动命运。爸爸、妈妈、女儿、儿子、老婆、老公都可以分别选择。</p>
+
+        <section class="heart-category-picker" aria-label="选择关系身份">
+            <div class="heart-category-copy">
+                <span>身份星盘</span>
+                <small>首次随机推荐，也可以随时点选；打勾表示该身份已经保存</small>
+            </div>
+            <div id="heartCategoryTabs" class="heart-category-tabs"></div>
+        </section>
+
+        <section class="heart-role-card">
+            <span>系统为你抽到</span>
+            <strong id="heartRoleTitle">你的父母是</strong>
+        </section>
+
+        <section id="heartSlots" class="heart-slots"></section>
+        <p id="heartRoundTip" class="heart-round-tip">点击“开始”，让照片开始循环。</p>
+
+        <section id="heartResultPanel" class="heart-result-panel hidden">
+            <div class="heart-result-heading">
+                <span>✦ 命运关系簿 ✦</span>
+                <h2 id="heartResultTitle">你的心选结果</h2>
+            </div>
+            <div id="heartResultList" class="heart-result-list"></div>
+        </section>
+
+        <button id="heartNextRoleBtn" class="heart-next-role hidden" type="button">再抽一种身份</button>
+    </main>
+    <div id="heartToast" class="heart-toast hidden"></div>
+</div>
+
     <script src="script.js"></script>
+    <script>
+        // 本地双击打开时，即使云端 SDK 暂时加载失败，也不能让主页一直隐藏。
+        window.setTimeout(function () {
+            var splash = document.getElementById('splash');
+            var main = document.getElementById('mainPage');
+            var heart = document.getElementById('heartPage');
+            var banquet = document.getElementById('banquetPage');
+            if (splash) splash.style.display = 'none';
+            if (main && main.classList.contains('hidden')
+                && heart && heart.classList.contains('hidden')
+                && banquet && banquet.classList.contains('hidden')) {
+                main.classList.remove('hidden');
+            }
+        }, 4200);
+    </script>
 </body>
 </html>
