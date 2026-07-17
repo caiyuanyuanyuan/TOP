@@ -2328,106 +2328,248 @@ button { -webkit-user-select: none; user-select: none; }
     .heart-pick-btn, .heart-bg-orb, .heart-sparkles span, .destiny-halo, .destiny-shine { animation: none !important; }
 }
 
-/* ========== 心选身份星盘：支持同一用户选择全部六种关系 ========== */
-.heart-category-picker {
-    width: min(760px, 94vw);
-    margin: 18px auto 16px;
-    padding: 16px;
-    border: 1px solid rgba(255, 255, 255, .72);
-    border-radius: 22px;
-    background: rgba(255, 255, 255, .32);
-    box-shadow: 0 16px 38px rgba(103, 72, 153, .13), inset 0 1px 0 rgba(255, 255, 255, .7);
-    backdrop-filter: blur(14px);
+/* ================================================================
+   主页面按钮布局优化（最终覆盖）
+   1. “心选之人”和“入席”并排放在竖排文字下方
+   2. 彩蛋并入右侧按钮列；解锁后只使用紫色
+   ================================================================ */
+
+:root {
+    --main-action-bottom: calc(var(--safe-bottom, 0px) + 20px);
 }
 
-.heart-category-copy {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 14px;
-    margin-bottom: 12px;
-    color: #5f3d8b;
+/* 给底部操作区留出呼吸空间 */
+.main-page {
+    padding-bottom: calc(var(--safe-bottom, 0px) + 88px);
 }
 
-.heart-category-copy span {
-    font-size: 17px;
-    font-weight: 700;
-    letter-spacing: 2px;
-}
-
-.heart-category-copy small {
-    color: #806b9d;
-    font-size: 12px;
-    text-align: right;
-}
-
-.heart-category-tabs {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 9px;
-}
-
-.heart-category-tab {
-    min-height: 42px;
-    padding: 8px 9px;
-    border: 1px solid rgba(134, 91, 182, .18);
-    border-radius: 999px;
-    background: rgba(255, 255, 255, .66);
-    color: #6b4a90;
+/* 主操作区：心选之人 + 入席 */
+.heart-pick-btn,
+.seat-btn {
+    position: absolute !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: var(--main-action-bottom) !important;
+    z-index: 115;
+    margin: 0;
     font-family: inherit;
-    font-size: 13px;
     cursor: pointer;
-    transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+    backdrop-filter: blur(16px) saturate(1.18);
+    -webkit-backdrop-filter: blur(16px) saturate(1.18);
 }
 
-.heart-category-tab:hover,
-.heart-category-tab:active {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(109, 75, 153, .17);
-}
-
-.heart-category-tab.is-active {
+.heart-pick-btn {
+    left: calc(50% - 38px) !important;
+    width: clamp(210px, 62vw, 250px);
+    min-height: 48px;
+    padding: 11px 18px;
+    transform: translateX(-50%) !important;
+    border: 1px solid rgba(255, 255, 255, .84);
+    border-radius: 999px;
     color: #fff;
-    border-color: transparent;
-    background: linear-gradient(135deg, #a77bd6, #d58fd1);
-    box-shadow: 0 8px 24px rgba(136, 86, 176, .3);
+    font-size: clamp(13px, 3.5vw, 15px);
+    font-weight: 700;
+    letter-spacing: .8px;
+    white-space: nowrap;
+    background:
+        linear-gradient(120deg,
+            rgba(130, 91, 181, .94),
+            rgba(190, 137, 211, .94) 52%,
+            rgba(115, 82, 170, .94));
+    background-size: 180% 180%;
+    box-shadow:
+        0 11px 28px rgba(75, 40, 108, .24),
+        0 0 0 1px rgba(255, 255, 255, .12) inset,
+        0 1px 0 rgba(255, 255, 255, .55) inset;
+    animation: heartButtonGlow 4.5s ease-in-out infinite;
 }
 
-.heart-category-tab.is-complete:not(.is-active) {
-    background: rgba(244, 237, 255, .9);
-    border-color: rgba(125, 91, 169, .34);
-}
-
-.heart-category-tab b {
-    display: inline-grid;
-    place-items: center;
-    width: 17px;
-    height: 17px;
-    margin-left: 5px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, .72);
-    color: #765095;
+.heart-pick-btn::after {
+    content: '✦';
+    display: inline-block;
+    margin-left: 8px;
+    color: rgba(255, 255, 255, .9);
     font-size: 11px;
+    transform: translateY(-1px);
+    text-shadow: 0 0 8px rgba(255, 255, 255, .9);
 }
 
-.heart-category-tab.is-active b {
-    color: #8b5cae;
+.heart-pick-btn:hover {
+    transform: translateX(-50%) translateY(-2px) scale(1.015) !important;
+    box-shadow:
+        0 14px 34px rgba(75, 40, 108, .3),
+        0 0 20px rgba(207, 166, 231, .28);
 }
 
-@media (max-width: 620px) {
-    .heart-category-copy {
-        display: block;
+.heart-pick-btn:active {
+    transform: translateX(-50%) scale(.97) !important;
+}
+
+.seat-btn {
+    left: calc(50% + 126px) !important;
+    width: 66px !important;
+    height: 48px !important;
+    min-width: 66px;
+    min-height: 48px;
+    padding: 0 10px;
+    transform: translateX(-50%);
+    border: 1px solid rgba(255, 255, 255, .84);
+    border-radius: 999px;
+    color: #684789;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    background:
+        linear-gradient(145deg,
+            rgba(255, 255, 255, .86),
+            rgba(237, 220, 250, .88));
+    box-shadow:
+        0 10px 24px rgba(76, 42, 108, .19),
+        0 1px 0 rgba(255, 255, 255, .9) inset;
+}
+
+.seat-btn::before {
+    content: '✦';
+    margin-right: 4px;
+    color: #a579c5;
+    font-size: 9px;
+}
+
+.seat-btn:hover {
+    transform: translateX(-50%) translateY(-2px);
+    color: #583674;
+    background: linear-gradient(145deg, #fff, #ead6f7);
+    box-shadow: 0 13px 29px rgba(76, 42, 108, .24);
+}
+
+.seat-btn:active {
+    transform: translateX(-50%) scale(.95);
+}
+
+/* 彩蛋并入右侧按钮列：音乐按钮下方 */
+.group-egg-btn {
+    position: fixed !important;
+    top: calc(var(--safe-top, 0px) + 68px) !important;
+    right: calc(var(--safe-right, 0px) + 14px) !important;
+    left: auto !important;
+    width: clamp(42px, 11vw, 48px) !important;
+    height: clamp(42px, 11vw, 48px) !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(255, 255, 255, .72);
+    border-radius: 50% !important;
+    color: rgba(255, 255, 255, .92);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0;
+    opacity: .88;
+    filter: none !important;
+    background:
+        linear-gradient(145deg,
+            rgba(143, 126, 164, .78),
+            rgba(105, 91, 124, .82)) !important;
+    box-shadow:
+        0 8px 22px rgba(71, 50, 93, .16),
+        0 1px 0 rgba(255, 255, 255, .48) inset;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+}
+
+.group-egg-btn:hover {
+    transform: translateY(-1px);
+    opacity: 1;
+}
+
+.group-egg-btn:active {
+    transform: scale(.94);
+}
+
+/* 点亮后只使用梦幻紫，不再使用五彩渐变 */
+.group-egg-btn.unlocked {
+    color: #fff !important;
+    opacity: 1 !important;
+    filter: none !important;
+    border-color: rgba(255, 255, 255, .9) !important;
+    background:
+        linear-gradient(145deg,
+            #c49be0 0%,
+            #9a6fc3 48%,
+            #704b9f 100%) !important;
+    box-shadow:
+        0 9px 25px rgba(91, 53, 126, .3),
+        0 0 18px rgba(202, 158, 229, .46),
+        0 1px 0 rgba(255, 255, 255, .55) inset !important;
+}
+
+/* 极窄手机：保持两个按钮完整显示 */
+@media (max-width: 359px) {
+    .heart-pick-btn {
+        left: calc(50% - 35px) !important;
+        width: 204px;
+        padding-inline: 12px;
+        font-size: 12px;
     }
-    .heart-category-copy small {
-        display: block;
-        margin-top: 4px;
-        text-align: left;
-        line-height: 1.5;
+
+    .seat-btn {
+        left: calc(50% + 112px) !important;
+        width: 62px !important;
+        min-width: 62px;
+        font-size: 13px;
     }
-    .heart-category-tabs {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* 宽屏：主操作区跟随右侧竖排文字，真正放在文字下方 */
+@media (min-width: 820px) and (min-height: 600px) {
+    .heart-pick-btn {
+        left: calc(78% - 40px) !important;
+        width: clamp(220px, 22vw, 270px);
+        bottom: calc(var(--safe-bottom, 0px) + 34px) !important;
     }
-    .heart-category-tab:first-child {
-        grid-column: 1 / -1;
+
+    .seat-btn {
+        left: calc(78% + 140px) !important;
+        bottom: calc(var(--safe-bottom, 0px) + 34px) !important;
+    }
+}
+
+/* 横屏矮屏也固定在右侧文字下方，避免压住摩天轮 */
+@media (orientation: landscape) and (max-height: 560px) {
+    .heart-pick-btn {
+        left: calc(78% - 35px) !important;
+        width: clamp(205px, 25vw, 245px);
+        bottom: calc(var(--safe-bottom, 0px) + 14px) !important;
+    }
+
+    .seat-btn {
+        left: calc(78% + 125px) !important;
+        bottom: calc(var(--safe-bottom, 0px) + 14px) !important;
+    }
+}
+
+/* 矮屏竖屏：撤销旧版把入席按钮放到顶部的规则 */
+@media (max-height: 650px) and (orientation: portrait) {
+    .main-page {
+        min-height: 760px;
+        padding-bottom: calc(var(--safe-bottom, 0px) + 90px);
+    }
+
+    .heart-pick-btn,
+    .seat-btn {
+        top: auto !important;
+        bottom: calc(var(--safe-bottom, 0px) + 20px) !important;
+    }
+
+    /* 此时相册在右侧第二格，彩蛋顺延到右侧第三格 */
+    .group-egg-btn {
+        top: calc(var(--safe-top, 0px) + 118px) !important;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .heart-pick-btn {
+        animation: none !important;
     }
 }
