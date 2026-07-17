@@ -2428,12 +2428,6 @@ button { -webkit-user-select: none; user-select: none; }
         0 1px 0 rgba(255, 255, 255, .9) inset;
 }
 
-.seat-btn::before {
-    content: '✦';
-    margin-right: 4px;
-    color: #a579c5;
-    font-size: 9px;
-}
 
 .seat-btn:hover {
     transform: translateX(-50%) translateY(-2px);
@@ -2572,4 +2566,13 @@ button { -webkit-user-select: none; user-select: none; }
     .heart-pick-btn {
         animation: none !important;
     }
+}
+
+.heart-category-tabs {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 9px;
+}
+.heart-category-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
 }
