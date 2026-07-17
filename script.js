@@ -21,7 +21,10 @@ const safeStorage = (() => {
 // ========== Supabase 云端配置 ==========
 // 1. 在 Supabase 创建项目并执行同目录的 supabase-setup.sql
 // 2. 开启 Authentication > Providers > Anonymous Sign-Ins
-// 3. 将下面两项替换成项目设置里的 Project URL 和 Publishable Key（或 legacy anon key）
+// NEXT_PUBLIC_SUPABASE_URL=https://tsydxgednpxyqnbzzcpu.supabase.co
+// NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable__2aJq5w8cm7j1OH1BGRAzA_IBUhQf_9
+
+
 const SUPABASE_URL = 'https://tsydxgednpxyqnbzzcpu.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable__2aJq5w8cm7j1OH1BGRAzA_IBUhQf_9';
 const CLOUD_CONFIGURED = !SUPABASE_URL.includes('YOUR_PROJECT_ID')
@@ -1356,34 +1359,51 @@ const HEART_CATEGORIES = [
     { key: 'wife', title: '你的老婆是', roles: ['老婆'] },
     { key: 'husband', title: '你的老公是', roles: ['老公'] }
 ];
+
 const RELATION_ORDER = ['爸爸', '妈妈', '女儿', '儿子', '老婆', '老公'];
+
 let activeHeartCategory = null;
 let heartSlotsState = [];
 let completedHeartRoles = new Set();
 let lastHeartCategoryKey = safeStorage.getItem('last_heart_category') || '';
 let relationScrollTimers = [];
+let savedHeartChoices = new Map();
 
 function initHeartPicker() {
     const openBtn = document.getElementById('heartPickBtn');
     const backBtn = document.getElementById('heartBackBtn');
     const nextBtn = document.getElementById('heartNextRoleBtn');
+    const tabs = document.getElementById('heartCategoryTabs');
+    const slots = document.getElementById('heartSlots');
     const heartPage = document.getElementById('heartPage');
     const mainPage = document.getElementById('mainPage');
 
+    if (!openBtn || !backBtn || !nextBtn || !tabs || !slots || !heartPage || !mainPage) {
+        console.warn('心选页面缺少必要元素，心选功能未初始化。');
+        return;
+    }
+
+    renderHeartCategoryTabs();
+
     openBtn.addEventListener('click', async event => {
         event.stopPropagation();
+
         const name = getInviteeName();
         if (!name) {
-            document.getElementById('inviteSidebar').classList.add('open');
-            document.getElementById('inviteeInput').focus();
+            document.getElementById('inviteSidebar')?.classList.add('open');
+            document.getElementById('inviteeInput')?.focus();
             cloudStatusText('请先填写昵称，再来开启命运轮盘 ✦', 'warning');
             return;
         }
+
         await saveInviteeNameToCloud(name);
-        await loadCompletedHeartRoles();
+
         mainPage.classList.add('hidden');
         heartPage.classList.remove('hidden');
-        startNewHeartRound();
+
+        await loadOwnHeartChoices();
+        renderHeartCategoryTabs();
+        await startNewHeartRound();
     });
 
     backBtn.addEventListener('click', () => {
@@ -1391,19 +1411,24 @@ function initHeartPicker() {
         heartPage.classList.add('hidden');
         mainPage.classList.remove('hidden');
     });
-    nextBtn.addEventListener('click', () => startNewHeartRound());
 
-    document.getElementById('heartCategoryTabs').addEventListener('click', event => {
-        const button = event.target.closest('button[data-heart-category]');
-        if (!button) return;
-        startNewHeartRound(button.dataset.heartCategory);
+    nextBtn.addEventListener('click', () => {
+        startNewHeartRound();
     });
 
-    document.getElementById('heartSlots').addEventListener('click', event => {
+    tabs.addEventListener('click', event => {
+        const button = event.target.closest('[data-heart-category]');
+        if (!button) return;
+        selectHeartCategory(button.dataset.heartCategory);
+    });
+
+    slots.addEventListener('click', event => {
         const button = event.target.closest('button[data-heart-action]');
         if (!button) return;
+
         const index = Number(button.closest('[data-heart-slot]')?.dataset.heartSlot);
         if (!Number.isInteger(index)) return;
+
         const action = button.dataset.heartAction;
         if (action === 'spin') spinHeartSlot(index);
         if (action === 'satisfy') satisfyHeartSlot(index);
@@ -1413,23 +1438,44 @@ function initHeartPicker() {
     });
 }
 
-async function loadCompletedHeartRoles() {
-    const activeUserId = currentCloudUserId || userId;
+async function loadOwnHeartChoices() {
+    let activeUserId = currentCloudUserId || userId;
     let rows = [];
+
     if (cloud) {
         const session = await ensureCloudSession();
+        activeUserId = currentCloudUserId || userId;
+
         if (session && currentCloudUserId) {
-            const { data, error } = await cloud.from('heart_choices')
-                .select('relation_type')
+            const { data, error } = await cloud
+                .from('heart_choices')
+                .select('user_id,username,relation_type,member_key,member_name,updated_at')
                 .eq('user_id', currentCloudUserId);
-            if (!error) rows = data || [];
-            else console.warn('读取已选身份失败：', error);
+
+            if (!error) {
+                rows = data || [];
+            } else {
+                console.warn('读取自己的心选结果失败：', error);
+            }
         }
     }
+
     if (!rows.length) {
-        rows = readLocalHeartChoices().filter(item => item.user_id === activeUserId);
+        rows = readLocalHeartChoices().filter(record => record.user_id === activeUserId);
     }
-    completedHeartRoles = new Set(rows.map(item => item.relation_type));
+
+    savedHeartChoices = new Map();
+    rows.forEach(record => {
+        if (record?.relation_type) {
+            savedHeartChoices.set(record.relation_type, record);
+        }
+    });
+
+    completedHeartRoles = new Set(savedHeartChoices.keys());
+}
+
+async function loadCompletedHeartRoles() {
+    await loadOwnHeartChoices();
     renderHeartCategoryTabs();
 }
 
@@ -1438,95 +1484,195 @@ function chooseHeartCategory() {
         category.roles.some(role => !completedHeartRoles.has(role))
         && category.key !== lastHeartCategoryKey
     );
+
     const pool = unfinished.length
         ? unfinished
-        : HEART_CATEGORIES.filter(item => item.key !== lastHeartCategoryKey);
+        : HEART_CATEGORIES.filter(category => category.key !== lastHeartCategoryKey);
+
     return pool[Math.floor(Math.random() * pool.length)] || HEART_CATEGORIES[0];
+}
+
+function findHeartMember(record) {
+    if (!record) return null;
+
+    return members.find(member =>
+        member.key === record.member_key || member.name === record.member_name
+    ) || null;
 }
 
 function renderHeartCategoryTabs() {
     const container = document.getElementById('heartCategoryTabs');
     if (!container) return;
+
     container.innerHTML = HEART_CATEGORIES.map(category => {
-        const complete = category.roles.every(role => completedHeartRoles.has(role));
+        const selectedMembers = category.roles
+            .map(role => findHeartMember(savedHeartChoices.get(role)))
+            .filter(Boolean);
+
+        const complete = selectedMembers.length === category.roles.length;
         const active = activeHeartCategory?.key === category.key;
-        return `<button type="button" data-heart-category="${category.key}" class="heart-category-tab ${active ? 'is-active' : ''} ${complete ? 'is-complete' : ''}">
-            <span>${category.roles.join('＋')}</span>${complete ? '<b>✓</b>' : ''}
-        </button>`;
+        const label = category.key === 'parents' ? '父母' : category.roles[0];
+
+        const photosHtml = selectedMembers.length
+            ? selectedMembers.map(member => `
+                <img
+                    class="heart-tab-photo"
+                    src="${member.image}"
+                    alt="${escapeHtml(member.name)}"
+                    title="${escapeHtml(member.name)}"
+                >
+            `).join('')
+            : '<span class="heart-tab-empty">✦</span>';
+
+        let statusText = '等待选择';
+        if (complete) {
+            statusText = category.key === 'parents'
+                ? selectedMembers.map(member => member.name).join(' · ')
+                : selectedMembers[0].name;
+        } else if (selectedMembers.length) {
+            statusText = `已完成 ${selectedMembers.length}/${category.roles.length}`;
+        }
+
+        return `
+            <button
+                type="button"
+                class="heart-category-tab ${active ? 'is-active' : ''} ${complete ? 'is-complete' : ''}"
+                data-heart-category="${category.key}"
+                aria-label="${escapeHtml(label)}：${escapeHtml(statusText)}"
+            >
+                ${complete ? '<span class="heart-tab-check">✓</span>' : ''}
+                <span class="heart-tab-photos">${photosHtml}</span>
+                <span class="heart-tab-label">${label}</span>
+                <small class="heart-tab-status">${escapeHtml(statusText)}</small>
+            </button>
+        `;
     }).join('');
 }
 
-function startNewHeartRound(categoryKey = '') {
+async function selectHeartCategory(categoryKey) {
     clearRelationScrollTimers();
-    activeHeartCategory = HEART_CATEGORIES.find(item => item.key === categoryKey) || chooseHeartCategory();
-    lastHeartCategoryKey = activeHeartCategory.key;
+
+    const category = HEART_CATEGORIES.find(item => item.key === categoryKey);
+    if (!category) return;
+
+    activeHeartCategory = category;
+    lastHeartCategoryKey = category.key;
     safeStorage.setItem('last_heart_category', lastHeartCategoryKey);
-    heartSlotsState = activeHeartCategory.roles.map(role => ({
-        role,
-        history: new Set(),
-        current: null,
-        satisfied: false,
-        rejected: false,
-        spinning: false,
-        exhausted: false
-    }));
-    document.getElementById('heartRoleTitle').textContent = activeHeartCategory.title;
-    document.getElementById('heartResultPanel').classList.add('hidden');
+
+    heartSlotsState = category.roles.map(role => {
+        const savedRecord = savedHeartChoices.get(role);
+        const savedMember = findHeartMember(savedRecord);
+
+        return {
+            role,
+            history: new Set(savedMember ? [savedMember.id] : []),
+            current: savedMember,
+            satisfied: Boolean(savedMember),
+            rejected: false,
+            spinning: false,
+            exhausted: false
+        };
+    });
+
+    const title = document.getElementById('heartRoleTitle');
+    const tip = document.getElementById('heartRoundTip');
+    const resultPanel = document.getElementById('heartResultPanel');
     const nextButton = document.getElementById('heartNextRoleBtn');
-    nextButton.classList.add('hidden');
-    nextButton.textContent = completedHeartRoles.size >= RELATION_ORDER.length ? '继续改选其他身份' : '随机抽下一种身份';
-    renderHeartCategoryTabs();
-    document.getElementById('heartRoundTip').textContent = activeHeartCategory.roles.length === 2
-        ? '爸爸和妈妈分别抽取；满意的一边会锁定，另一边可以继续重抽。'
-        : '点击“开始”，照片会循环转动；不满意时再次开始，旧结果不会重复。';
+
+    if (title) title.textContent = category.title;
+    resultPanel?.classList.add('hidden');
+    nextButton?.classList.add('hidden');
+
     renderHeartSlots();
+    renderHeartCategoryTabs();
+
+    const allSaved = heartSlotsState.every(slot => slot.satisfied && slot.current);
+
+    if (allSaved) {
+        if (tip) tip.textContent = '这是你已经保存的心选结果；点击“改选”可以重新抽取。';
+
+        const username = getInviteeName() || '神秘宾客';
+        await renderHeartResults(username);
+
+        resultPanel?.classList.remove('hidden');
+        nextButton?.classList.remove('hidden');
+    } else if (tip) {
+        tip.textContent = category.roles.length === 2
+            ? '爸爸和妈妈分别抽取；满意的一边会锁定，另一边可以继续重抽。'
+            : '点击“开始”，照片会循环转动；不满意时再次开始，旧结果不会重复。';
+    }
+}
+
+async function startNewHeartRound() {
+    const category = chooseHeartCategory();
+    await selectHeartCategory(category.key);
 }
 
 function renderHeartSlots() {
     const container = document.getElementById('heartSlots');
+    if (!container) return;
+
     container.classList.toggle('double', heartSlotsState.length === 2);
     container.innerHTML = heartSlotsState.map((slot, index) => {
         const member = slot.current;
-        const status = slot.spinning ? '命运转动中…'
-            : member ? member.name
-            : '等待星光降落';
+        const status = slot.spinning
+            ? '命运转动中…'
+            : member
+                ? member.name
+                : '等待星光降落';
         const startLabel = slot.current ? '再次循环' : '开始';
         const decisionHidden = !slot.current || slot.spinning || slot.satisfied;
         const startDisabled = slot.spinning || slot.satisfied || slot.exhausted;
+
         return `
             <article class="destiny-slot ${slot.satisfied ? 'is-satisfied' : ''} ${slot.spinning ? 'is-spinning' : ''}" data-heart-slot="${index}">
                 <div class="destiny-role"><span>你的</span><strong>${slot.role}</strong></div>
                 <div class="destiny-window">
                     <div class="destiny-halo"></div>
                     ${member
-                        ? `<img src="${member.image}" alt="${member.name}">`
+                        ? `<img src="${member.image}" alt="${escapeHtml(member.name)}">`
                         : '<div class="destiny-placeholder">✦</div>'}
                     <div class="destiny-shine"></div>
                 </div>
                 <div class="destiny-name">${escapeHtml(status)}</div>
-                <button class="destiny-start" data-heart-action="spin" type="button" ${startDisabled ? 'disabled' : ''}>${slot.spinning ? '转动中…' : startLabel}</button>
+                <button class="destiny-start" data-heart-action="spin" type="button" ${startDisabled ? 'disabled' : ''}>
+                    ${slot.spinning ? '转动中…' : startLabel}
+                </button>
                 <div class="destiny-decisions ${decisionHidden ? 'hidden' : ''}">
                     <button class="destiny-satisfy" data-heart-action="satisfy" type="button">满意</button>
                     <button class="destiny-reject" data-heart-action="reject" type="button">不满意</button>
                 </div>
-                ${slot.satisfied ? '<div class="destiny-locked">✓ 已满意 <button data-heart-action="unlock" type="button">改选</button></div>' : ''}
-                ${slot.exhausted ? '<div class="destiny-exhausted">新的候选已经全部看过<br><button data-heart-action="reset" type="button">重新洗牌</button></div>' : ''}
-            </article>`;
+                ${slot.satisfied
+                    ? '<div class="destiny-locked">✓ 已满意 <button data-heart-action="unlock" type="button">改选</button></div>'
+                    : ''}
+                ${slot.exhausted
+                    ? '<div class="destiny-exhausted">新的候选已经全部看过<br><button data-heart-action="reset" type="button">重新洗牌</button></div>'
+                    : ''}
+            </article>
+        `;
     }).join('');
 }
 
 function candidateMembersForSlot(index) {
     const slot = heartSlotsState[index];
-    const otherCurrentIds = new Set(heartSlotsState
-        .filter((_, otherIndex) => otherIndex !== index)
-        .map(item => item.current?.id)
-        .filter(Number.isInteger));
-    return members.filter(member => !slot.history.has(member.id) && !otherCurrentIds.has(member.id));
+    if (!slot) return [];
+
+    const otherCurrentIds = new Set(
+        heartSlotsState
+            .filter((_, otherIndex) => otherIndex !== index)
+            .map(item => item.current?.id)
+            .filter(Number.isInteger)
+    );
+
+    return members.filter(member =>
+        !slot.history.has(member.id) && !otherCurrentIds.has(member.id)
+    );
 }
 
 function spinHeartSlot(index) {
     const slot = heartSlotsState[index];
     if (!slot || slot.spinning || slot.satisfied) return;
+
     let candidates = candidateMembersForSlot(index);
     if (!candidates.length) {
         slot.exhausted = true;
@@ -1538,21 +1684,31 @@ function spinHeartSlot(index) {
     slot.spinning = true;
     slot.rejected = false;
     renderHeartSlots();
+
     const slotElement = document.querySelector(`[data-heart-slot="${index}"]`);
     const imageWindow = slotElement?.querySelector('.destiny-window');
     const nameElement = slotElement?.querySelector('.destiny-name');
     let frame = 0;
+
     const cycleTimer = setInterval(() => {
         candidates = candidateMembersForSlot(index);
         if (!candidates.length) return;
+
         const preview = candidates[frame % candidates.length];
-        imageWindow.innerHTML = `<div class="destiny-halo"></div><img src="${preview.image}" alt="${preview.name}"><div class="destiny-shine"></div>`;
-        nameElement.textContent = '命运转动中…';
+        if (imageWindow) {
+            imageWindow.innerHTML = `
+                <div class="destiny-halo"></div>
+                <img src="${preview.image}" alt="${escapeHtml(preview.name)}">
+                <div class="destiny-shine"></div>
+            `;
+        }
+        if (nameElement) nameElement.textContent = '命运转动中…';
         frame += 1;
     }, 90);
 
     setTimeout(() => {
         clearInterval(cycleTimer);
+
         const finalCandidates = candidateMembersForSlot(index);
         if (!finalCandidates.length) {
             slot.spinning = false;
@@ -1560,6 +1716,7 @@ function spinHeartSlot(index) {
             renderHeartSlots();
             return;
         }
+
         const chosen = finalCandidates[Math.floor(Math.random() * finalCandidates.length)];
         slot.current = chosen;
         slot.history.add(chosen.id);
@@ -1572,36 +1729,47 @@ function spinHeartSlot(index) {
 function satisfyHeartSlot(index) {
     const slot = heartSlotsState[index];
     if (!slot?.current) return;
+
     slot.satisfied = true;
     slot.rejected = false;
     renderHeartSlots();
-    if (heartSlotsState.every(item => item.satisfied)) finalizeHeartRound();
+
+    if (heartSlotsState.every(item => item.satisfied)) {
+        finalizeHeartRound();
+    }
 }
 
 function rejectHeartSlot(index) {
     const slot = heartSlotsState[index];
     if (!slot?.current) return;
+
     slot.satisfied = false;
     slot.rejected = true;
     slot.exhausted = candidateMembersForSlot(index).length === 0;
     renderHeartSlots();
-    if (!slot.exhausted) showHeartToast(`已排除这次的${slot.role}，点击“再次循环”继续`);
+
+    if (!slot.exhausted) {
+        showHeartToast(`已排除这次的${slot.role}，点击“再次循环”继续`);
+    }
 }
 
 function unlockHeartSlot(index) {
     const slot = heartSlotsState[index];
     if (!slot) return;
+
     slot.satisfied = false;
     slot.rejected = true;
     slot.exhausted = candidateMembersForSlot(index).length === 0;
-    document.getElementById('heartResultPanel').classList.add('hidden');
-    document.getElementById('heartNextRoleBtn').classList.add('hidden');
+
+    document.getElementById('heartResultPanel')?.classList.add('hidden');
+    document.getElementById('heartNextRoleBtn')?.classList.add('hidden');
     renderHeartSlots();
 }
 
 function resetHeartHistory(index) {
     const slot = heartSlotsState[index];
     if (!slot) return;
+
     slot.history = new Set(slot.current ? [slot.current.id] : []);
     slot.exhausted = false;
     slot.satisfied = false;
@@ -1612,16 +1780,33 @@ function resetHeartHistory(index) {
 
 async function finalizeHeartRound() {
     const username = getInviteeName() || '神秘宾客';
-    document.getElementById('heartRoundTip').textContent = '心动答案已写入婚礼星球 ✦';
+    const tip = document.getElementById('heartRoundTip');
+
+    if (tip) tip.textContent = '心动答案已写入婚礼星球 ✦';
+
     await saveHeartChoices(username);
-    heartSlotsState.forEach(slot => completedHeartRoles.add(slot.role));
+
+    heartSlotsState.forEach(slot => {
+        savedHeartChoices.set(slot.role, {
+            user_id: currentCloudUserId || userId,
+            username,
+            relation_type: slot.role,
+            member_key: slot.current.key,
+            member_name: slot.current.name,
+            updated_at: new Date().toISOString()
+        });
+        completedHeartRoles.add(slot.role);
+    });
+
     renderHeartCategoryTabs();
     await renderHeartResults(username);
-    document.getElementById('heartResultPanel').classList.remove('hidden');
-    const nextButton = document.getElementById('heartNextRoleBtn');
-    nextButton.textContent = completedHeartRoles.size >= RELATION_ORDER.length ? '六种身份都已选好 · 继续改选' : '继续选择其他身份';
-    nextButton.classList.remove('hidden');
-    document.getElementById('heartResultPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    document.getElementById('heartResultPanel')?.classList.remove('hidden');
+    document.getElementById('heartNextRoleBtn')?.classList.remove('hidden');
+    document.getElementById('heartResultPanel')?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+    });
 }
 
 async function saveHeartChoices(username) {
@@ -1634,26 +1819,40 @@ async function saveHeartChoices(username) {
         updated_at: new Date().toISOString()
     }));
 
+    let cloudSaved = false;
+
     if (cloud) {
         const session = await ensureCloudSession();
         if (session && currentCloudUserId) {
-            records.forEach(record => { record.user_id = currentCloudUserId; });
-            const { error } = await cloud.from('heart_choices')
+            records.forEach(record => {
+                record.user_id = currentCloudUserId;
+            });
+
+            const { error } = await cloud
+                .from('heart_choices')
                 .upsert(records, { onConflict: 'user_id,relation_type' });
-            if (!error) return true;
-            console.warn('心选结果同步失败：', error);
-            showHeartToast('云端同步失败，结果已保存在本机');
+
+            if (!error) {
+                cloudSaved = true;
+            } else {
+                console.warn('心选结果同步失败：', error);
+                showHeartToast('云端同步失败，结果已保存在本机');
+            }
         }
     }
 
     const local = readLocalHeartChoices();
     records.forEach(record => {
-        const index = local.findIndex(item => item.user_id === record.user_id && item.relation_type === record.relation_type);
+        const index = local.findIndex(item =>
+            item.user_id === record.user_id && item.relation_type === record.relation_type
+        );
+
         if (index >= 0) local[index] = record;
         else local.push(record);
     });
     safeStorage.setItem('heart_choices_local', JSON.stringify(local));
-    return false;
+
+    return cloudSaved;
 }
 
 function readLocalHeartChoices() {
@@ -1666,31 +1865,46 @@ function readLocalHeartChoices() {
 }
 
 async function fetchMemberRelations(memberKey) {
-    const activeUserId = currentCloudUserId || userId;
+    let activeUserId = currentCloudUserId || userId;
+
     if (cloud) {
         const session = await ensureCloudSession();
+        activeUserId = currentCloudUserId || userId;
+
         if (session) {
-            const { data, error } = await cloud.from('heart_choices')
+            const { data, error } = await cloud
+                .from('heart_choices')
                 .select('user_id,username,relation_type,member_key,member_name')
                 .eq('member_key', memberKey)
                 .neq('user_id', activeUserId);
+
             if (!error) return data || [];
             console.warn('读取关系簿失败：', error);
         }
     }
-    return readLocalHeartChoices().filter(item => item.member_key === memberKey && item.user_id !== activeUserId);
+
+    return readLocalHeartChoices().filter(item =>
+        item.member_key === memberKey && item.user_id !== activeUserId
+    );
 }
 
 async function renderHeartResults(username) {
     clearRelationScrollTimers();
+
     const list = document.getElementById('heartResultList');
-    document.getElementById('heartResultTitle').textContent = `${username}的心选结果`;
+    const title = document.getElementById('heartResultTitle');
+    if (!list || !title) return;
+
+    title.textContent = `${username}的心选结果`;
     list.innerHTML = '<div class="heart-loading">正在翻阅婚礼关系簿…</div>';
+
     const panels = [];
     for (const slot of heartSlotsState) {
+        if (!slot.current) continue;
         const rows = await fetchMemberRelations(slot.current.key);
         panels.push(buildMemberRelationPanel(username, slot, rows));
     }
+
     list.innerHTML = panels.join('');
     requestAnimationFrame(setupRelationAutoScroll);
 }
@@ -1699,44 +1913,72 @@ function buildMemberRelationPanel(username, slot, rows) {
     const groups = RELATION_ORDER.map((role, order) => ({
         role,
         order,
-        names: rows.filter(row => row.relation_type === role).map(row => row.username).filter(Boolean)
-    })).filter(group => group.names.length)
-      .sort((a, b) => b.names.length - a.names.length || a.order - b.order);
+        names: rows
+            .filter(row => row.relation_type === role)
+            .map(row => row.username)
+            .filter(Boolean)
+    }))
+        .filter(group => group.names.length)
+        .sort((a, b) => b.names.length - a.names.length || a.order - b.order);
 
     const relationHtml = groups.length
         ? groups.map(group => `
             <section class="relation-group">
-                <div class="relation-group-title"><strong>${group.role}</strong><span>${group.names.length} 人</span></div>
-                <div class="relation-name-list">${group.names.map(name => `<span>${escapeHtml(name)}的${group.role}</span>`).join('')}</div>
-            </section>`).join('')
+                <div class="relation-group-title">
+                    <strong>${group.role}</strong><span>${group.names.length} 人</span>
+                </div>
+                <div class="relation-name-list">
+                    ${group.names.map(name => `<span>${escapeHtml(name)}的${group.role}</span>`).join('')}
+                </div>
+            </section>
+        `).join('')
         : '<div class="relation-empty">目前还没有其他人抽到他<br>你是这段关系的第一颗星 ✦</div>';
 
     return `
         <article class="heart-final-card">
             <div class="heart-final-person">
-                <img src="${slot.current.image}" alt="${slot.current.name}">
-                <div><p>${escapeHtml(username)}的${slot.role}是</p><h3>${slot.current.name}</h3></div>
+                <img src="${slot.current.image}" alt="${escapeHtml(slot.current.name)}">
+                <div>
+                    <p>${escapeHtml(username)}的${slot.role}是</p>
+                    <h3>${escapeHtml(slot.current.name)}</h3>
+                </div>
             </div>
             <div class="heart-also-title">他还是……</div>
             <div class="relation-loop" tabindex="0">
                 <div class="relation-loop-track">${relationHtml}</div>
             </div>
-        </article>`;
+        </article>
+    `;
 }
 
 function setupRelationAutoScroll() {
     document.querySelectorAll('.relation-loop').forEach(viewport => {
         const track = viewport.querySelector('.relation-loop-track');
         if (!track || track.scrollHeight <= viewport.clientHeight + 8) return;
+
         track.insertAdjacentHTML('beforeend', track.innerHTML);
         let paused = false;
-        ['pointerenter', 'pointerdown', 'touchstart', 'focusin'].forEach(type => viewport.addEventListener(type, () => { paused = true; }, { passive: true }));
-        ['pointerleave', 'pointerup', 'touchend', 'focusout'].forEach(type => viewport.addEventListener(type, () => { paused = false; }, { passive: true }));
+
+        ['pointerenter', 'pointerdown', 'touchstart', 'focusin'].forEach(type => {
+            viewport.addEventListener(type, () => {
+                paused = true;
+            }, { passive: true });
+        });
+
+        ['pointerleave', 'pointerup', 'touchend', 'focusout'].forEach(type => {
+            viewport.addEventListener(type, () => {
+                paused = false;
+            }, { passive: true });
+        });
+
         const timer = setInterval(() => {
             if (paused) return;
             viewport.scrollTop += 1;
-            if (viewport.scrollTop >= track.scrollHeight / 2) viewport.scrollTop = 0;
+            if (viewport.scrollTop >= track.scrollHeight / 2) {
+                viewport.scrollTop = 0;
+            }
         }, 42);
+
         relationScrollTimers.push(timer);
     });
 }
@@ -1749,6 +1991,7 @@ function clearRelationScrollTimers() {
 function showHeartToast(text) {
     const toast = document.getElementById('heartToast');
     if (!toast) return;
+
     toast.textContent = text;
     toast.classList.remove('hidden');
     clearTimeout(showHeartToast.timer);
@@ -1757,6 +2000,10 @@ function showHeartToast(text) {
 
 function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>'"]/g, char => ({
-        '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        "'": '&#39;',
+        '"': '&quot;'
     })[char]);
 }

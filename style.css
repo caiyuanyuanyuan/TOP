@@ -2568,11 +2568,280 @@ button { -webkit-user-select: none; user-select: none; }
     }
 }
 
+/* ==================================================
+   心选页面：身份星盘
+   ================================================== */
+
+.heart-category-picker {
+    width: min(94vw, 820px);
+    margin: 22px auto 24px;
+    padding: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.82);
+    border-radius: 28px;
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255, 255, 255, 0.66),
+            rgba(236, 218, 250, 0.48)
+        );
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    box-shadow:
+        0 16px 38px rgba(83, 46, 113, 0.13),
+        inset 0 1px 0 rgba(255, 255, 255, 0.92);
+}
+
+.heart-category-copy {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 14px;
+    margin: 0 4px 13px;
+    text-align: left;
+}
+
+.heart-category-copy > span {
+    color: #644184;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 3px;
+}
+
+.heart-category-copy > small {
+    color: rgba(83, 53, 105, 0.58);
+    font-size: 12px;
+    line-height: 1.6;
+    text-align: right;
+}
+
+/* 五个身份标签 */
 .heart-category-tabs {
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 9px;
+    grid-template-columns: repeat(5, minmax(92px, 1fr));
+    gap: 10px;
+    width: 100%;
 }
-.heart-category-tabs {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+/* 单个身份卡片 */
+.heart-category-tab {
+    position: relative;
+    min-width: 0;
+    min-height: 116px;
+    padding: 10px 7px 9px;
+    border: 1px solid rgba(255, 255, 255, 0.82);
+    border-radius: 21px;
+    color: #76558e;
+    font-family: inherit;
+    cursor: pointer;
+    overflow: hidden;
+    background:
+        linear-gradient(
+            155deg,
+            rgba(255, 255, 255, 0.72),
+            rgba(232, 211, 247, 0.55)
+        );
+    box-shadow:
+        0 8px 20px rgba(82, 48, 107, 0.09),
+        inset 0 1px 0 rgba(255, 255, 255, 0.95);
+    transition:
+        transform 0.25s ease,
+        border-color 0.25s ease,
+        box-shadow 0.25s ease,
+        background 0.25s ease;
+}
+
+.heart-category-tab::before {
+    content: "";
+    position: absolute;
+    top: -40px;
+    left: -30px;
+    width: 85px;
+    height: 85px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.46);
+    filter: blur(4px);
+    pointer-events: none;
+}
+
+.heart-category-tab:hover {
+    transform: translateY(-3px);
+    border-color: rgba(187, 142, 221, 0.7);
+    box-shadow:
+        0 13px 26px rgba(86, 48, 117, 0.15),
+        inset 0 1px 0 #fff;
+}
+
+.heart-category-tab:active {
+    transform: scale(0.97);
+}
+
+/* 当前正在查看的身份 */
+.heart-category-tab.is-active {
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.94);
+    background:
+        linear-gradient(
+            135deg,
+            rgba(117, 78, 161, 0.94),
+            rgba(184, 125, 204, 0.92)
+        );
+    box-shadow:
+        0 13px 30px rgba(95, 54, 130, 0.27),
+        0 0 0 2px rgba(217, 181, 240, 0.32),
+        inset 0 1px 0 rgba(255, 255, 255, 0.52);
+}
+
+/* 已经保存过结果 */
+.heart-category-tab.is-complete:not(.is-active) {
+    border-color: rgba(177, 130, 211, 0.48);
+    background:
+        linear-gradient(
+            145deg,
+            rgba(248, 240, 255, 0.94),
+            rgba(218, 190, 239, 0.73)
+        );
+}
+
+/* 照片区域 */
+.heart-tab-photos {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 51px;
+    margin-bottom: 5px;
+}
+
+/* 未选择时的星星占位 */
+.heart-tab-empty {
+    display: grid;
+    place-items: center;
+    width: 45px;
+    height: 45px;
+    border: 1px dashed rgba(126, 91, 154, 0.38);
+    border-radius: 50%;
+    color: rgba(116, 79, 145, 0.58);
+    font-size: 20px;
+    background: rgba(255, 255, 255, 0.35);
+}
+
+.heart-category-tab.is-active .heart-tab-empty {
+    color: rgba(255, 255, 255, 0.86);
+    border-color: rgba(255, 255, 255, 0.55);
+    background: rgba(255, 255, 255, 0.13);
+}
+
+/* 已选择人物头像 */
+.heart-tab-photo {
+    width: 47px;
+    height: 47px;
+    flex: 0 0 47px;
+    border: 3px solid rgba(255, 255, 255, 0.92);
+    border-radius: 50%;
+    object-fit: cover;
+    background: #ead7f7;
+    box-shadow: 0 5px 13px rgba(66, 34, 92, 0.2);
+}
+
+/* 爸爸妈妈两张头像重叠 */
+.heart-tab-photo + .heart-tab-photo {
+    margin-left: -13px;
+}
+
+.heart-tab-label {
+    position: relative;
+    z-index: 1;
+    display: block;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    white-space: nowrap;
+}
+
+.heart-tab-status {
+    position: relative;
+    z-index: 1;
+    display: block;
+    min-height: 17px;
+    margin-top: 3px;
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: rgba(94, 60, 119, 0.55);
+}
+
+.heart-category-tab.is-active .heart-tab-status {
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.heart-category-tab.is-complete .heart-tab-status {
+    color: #785293;
+}
+
+/* 已完成的右上角小勾 */
+.heart-tab-check {
+    position: absolute;
+    top: 7px;
+    right: 8px;
+    z-index: 3;
+    display: grid;
+    place-items: center;
+    width: 19px;
+    height: 19px;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 11px;
+    background: #8d64ad;
+    box-shadow: 0 3px 8px rgba(84, 48, 109, 0.2);
+}
+
+.heart-category-tab.is-active .heart-tab-check {
+    color: #775096;
+    background: rgba(255, 255, 255, 0.92);
+}
+
+/* 手机端改成横向滑动，不会挤变形 */
+@media (max-width: 680px) {
+    .heart-category-picker {
+        width: 96vw;
+        padding: 13px 10px 14px;
+        border-radius: 24px;
+    }
+
+    .heart-category-copy {
+        display: block;
+        margin-inline: 6px;
+    }
+
+    .heart-category-copy > small {
+        display: block;
+        margin-top: 5px;
+        text-align: left;
+    }
+
+    .heart-category-tabs {
+        display: flex;
+        gap: 9px;
+        padding: 2px 3px 8px;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .heart-category-tabs::-webkit-scrollbar {
+        display: none;
+    }
+
+    .heart-category-tab {
+        flex: 0 0 104px;
+        min-height: 108px;
+        scroll-snap-align: center;
+    }
+
+    .heart-tab-photo {
+        width: 44px;
+        height: 44px;
+        flex-basis: 44px;
+    }
 }
