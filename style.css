@@ -1171,36 +1171,125 @@ html, body {
     transform: scale(0.95);
 }
 
-/* ========== 请柬昵称输入 ========== */
+/* ========== 请柬昵称确认 ========== */
 .invitee-input-wrap {
     display: inline-block;
     margin: 6px 0;
 }
 
-.invitee-input {
-    width: 140px;
+.invitee-name-button {
+    min-width: 140px;
     padding: 6px 12px;
-    border: none;
+    border: 0;
     border-bottom: 2px dashed rgba(180, 130, 220, 0.6);
     background: transparent;
-    text-align: center;
-    font-size: 18px;
-    font-weight: bold;
-    color: #7a4ab0;
+    color: rgba(150, 120, 180, 0.62);
     font-family: inherit;
-    letter-spacing: 2px;
-    outline: none;
-    transition: border-color 0.3s;
-}
-
-.invitee-input:focus {
-    border-bottom-color: #a878d0;
-}
-
-.invitee-input::placeholder {
-    color: rgba(150, 120, 180, 0.5);
-    font-weight: normal;
     font-size: 14px;
+    font-weight: 400;
+    text-align: center;
+    cursor: pointer;
+}
+
+.invitee-name-button.has-name {
+    color: #7a4ab0;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 2px;
+}
+
+.invitee-name-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    display: grid;
+    place-items: center;
+    padding: 22px;
+    background: rgba(69, 43, 91, 0.46);
+    backdrop-filter: blur(7px);
+}
+
+.invitee-name-modal.hidden { display: none; }
+
+.invitee-name-card {
+    width: min(88vw, 350px);
+    padding: 24px;
+    border: 1px solid rgba(255,255,255,.82);
+    border-radius: 22px;
+    background: rgba(255,255,255,.94);
+    box-shadow: 0 20px 48px rgba(59, 31, 82, .26);
+    text-align: center;
+}
+
+.invitee-name-card h3 {
+    margin: 0;
+    color: #654283;
+    font-size: 21px;
+}
+
+.invitee-name-tip {
+    margin: 8px 0 16px;
+    color: rgba(83, 52, 108, .65);
+    font-size: 13px;
+}
+
+.invitee-name-draft {
+    width: 100%;
+    height: 48px;
+    padding: 0 14px;
+    border: 1px solid rgba(157, 112, 194, .42);
+    border-radius: 14px;
+    outline: none;
+    background: rgba(247, 241, 252, .9);
+    color: #674486;
+    font-family: inherit;
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-align: center;
+}
+
+.invitee-name-draft:focus {
+    border-color: #a878d0;
+    box-shadow: 0 0 0 3px rgba(168, 120, 208, .14);
+}
+
+.invitee-name-error {
+    min-height: 20px;
+    margin: 8px 0 4px;
+    color: #b34c68;
+    font-size: 12px;
+}
+
+.invitee-name-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.invitee-name-cancel,
+.invitee-name-confirm {
+    min-height: 42px;
+    border: 0;
+    border-radius: 13px;
+    font-family: inherit;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.invitee-name-cancel {
+    color: #76568d;
+    background: rgba(188, 159, 211, .2);
+}
+
+.invitee-name-confirm {
+    color: #fff;
+    background: linear-gradient(135deg, #bf94df, #9668bd);
+}
+
+.invitee-name-confirm:disabled {
+    opacity: .62;
+    cursor: wait;
 }
 
 /* ========== 相册回忆墙（修改：幻灯片内置文案，移除大图弹窗） ========== */
@@ -2614,10 +2703,10 @@ button { -webkit-user-select: none; user-select: none; }
     text-align: right;
 }
 
-/* 五个身份标签 */
+/* 七个身份标签 */
 .heart-category-tabs {
     display: grid;
-    grid-template-columns: repeat(5, minmax(92px, 1fr));
+    grid-template-columns: repeat(7, minmax(82px, 1fr));
     gap: 10px;
     width: 100%;
 }
@@ -2843,5 +2932,267 @@ button { -webkit-user-select: none; user-select: none; }
         width: 44px;
         height: 44px;
         flex-basis: 44px;
+    }
+}
+
+/* ====================== 入席页｜三个宴会厅、十桌与昵称座位 ====================== */
+.banquet-page {
+    overflow: hidden;
+}
+
+.banquet-main-container {
+    position: relative;
+    display: block;
+    width: 100%;
+    max-width: none;
+    height: calc(100dvh - clamp(158px, 25dvh, 226px));
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+}
+
+.banquet-room-content {
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 7px 0 calc(var(--safe-bottom) + 10px);
+}
+
+.banquet-tables-scroll {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    padding: 8px clamp(58px, 15vw, 92px) 58px clamp(30px, 8vw, 58px);
+}
+
+.banquet-tables-grid {
+    --table-size-room: clamp(72px, 20vw, 114px);
+    --seat-name-width: clamp(39px, 11.5vw, 59px);
+    --seat-name-height: clamp(21px, 6vw, 29px);
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: clamp(68px, 18vw, 138px);
+    row-gap: clamp(32px, 6.6dvh, 60px);
+    align-items: start;
+    min-height: 100%;
+    padding: 20px 0 36px;
+}
+
+.banquet-tables-grid .round-table-wrap {
+    width: 100%;
+    min-width: 0;
+    padding: calc(var(--seat-name-height) * 1.38) 0;
+    overflow: visible;
+}
+
+.banquet-tables-grid .round-table {
+    width: var(--table-size-room);
+    height: var(--table-size-room);
+    flex-basis: var(--table-size-room);
+}
+
+.table-center-content {
+    position: absolute;
+    inset: 17%;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(1px, .4vw, 3px);
+    pointer-events: none;
+}
+
+.table-center-label {
+    max-width: 100%;
+    color: rgba(85, 48, 117, .82);
+    font-size: clamp(8px, calc(var(--table-size-room) * .105), 12px);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0;
+    white-space: nowrap;
+    text-shadow: 0 1px 3px rgba(255,255,255,.92);
+}
+
+.banquet-tables-grid .table-food-emoji {
+    position: static;
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    padding: 0;
+    opacity: .62;
+    font-size: clamp(6px, calc(var(--table-size-room) * .078), 9px);
+    line-height: 1;
+    letter-spacing: -1px;
+    white-space: nowrap;
+    overflow: visible;
+}
+
+.banquet-tables-grid .seat {
+    width: var(--seat-name-width);
+    height: var(--seat-name-height);
+    min-width: var(--seat-name-width);
+    padding: 0 3px;
+    border-radius: 999px;
+    color: #62417f;
+    font-family: inherit;
+    font-size: clamp(9px, 2.55vw, 12px);
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: clip;
+}
+
+.banquet-tables-grid .seat[data-name-length="2"] {
+    font-size: clamp(9px, 2.45vw, 11.5px);
+}
+
+.banquet-tables-grid .seat[data-name-length="3"] {
+    font-size: clamp(8px, 2.25vw, 10.5px);
+    letter-spacing: -.3px;
+}
+
+.banquet-tables-grid .seat[data-name-length="4"] {
+    font-size: clamp(7px, 2.02vw, 9.5px);
+    letter-spacing: -.7px;
+}
+
+.banquet-tables-grid .seat:not(.occupied)::after {
+    width: 25%;
+    height: 35%;
+}
+
+.banquet-tables-grid .seat.occupied {
+    background: rgba(244, 232, 255, .98);
+    border-color: rgba(112, 72, 150, .58);
+}
+
+.banquet-tables-grid .seat.own-seat {
+    color: #603f79;
+    background: rgba(255, 247, 183, .98);
+}
+
+.banquet-tables-scroll .center-corridor {
+    position: absolute;
+    top: 10px;
+    bottom: 0;
+    left: 50%;
+    z-index: 1;
+    width: clamp(34px, 10vw, 70px);
+    transform: translateX(-50%);
+    pointer-events: none;
+}
+
+.banquet-tables-scroll .corridor-path {
+    inset: 8px 50% 0 auto;
+}
+
+.banquet-room-picker {
+    position: fixed;
+    top: 52%;
+    right: max(5px, var(--safe-right));
+    z-index: 225;
+    transform: translateY(-50%);
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.banquet-room-tabs {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+.banquet-room-tab {
+    width: clamp(54px, 15vw, 72px);
+    min-height: 42px;
+    padding: 7px 5px;
+    border: 1px solid rgba(255,255,255,.78);
+    border-radius: 16px 5px 5px 16px;
+    color: #6b4a86;
+    font-family: inherit;
+    font-size: clamp(11px, 3vw, 14px);
+    font-weight: 700;
+    cursor: pointer;
+    background: rgba(255,255,255,.72);
+    box-shadow: 0 7px 16px rgba(83,48,116,.13);
+    backdrop-filter: blur(8px);
+    transition: transform .2s ease, background .2s ease, box-shadow .2s ease;
+}
+
+.banquet-room-tab:active {
+    transform: scale(.96);
+}
+
+.banquet-room-tab.is-active {
+    color: #fff;
+    background: linear-gradient(145deg, #aa82d4, #8660b5);
+    box-shadow: 0 9px 20px rgba(102,62,142,.25), inset 0 1px 0 rgba(255,255,255,.35);
+}
+
+.banquet-main-container > .walk-member-group {
+    left: 50%;
+}
+
+@media (min-width: 700px) {
+    .banquet-room-content {
+        padding-inline: 12px;
+    }
+
+    .banquet-tables-scroll {
+        padding-right: 96px;
+        padding-left: 58px;
+    }
+
+    .banquet-tables-grid {
+        --table-size-room: clamp(94px, 13vw, 124px);
+        --seat-name-width: clamp(48px, 7vw, 66px);
+        --seat-name-height: clamp(25px, 3.5vw, 31px);
+        row-gap: 60px;
+    }
+}
+
+@media (orientation: landscape) and (max-height: 560px) {
+    .banquet-main-container {
+        height: calc(100dvh - 130px);
+        min-height: 0;
+    }
+
+    .banquet-room-content {
+        padding-top: 2px;
+    }
+
+    .banquet-tables-scroll {
+        padding-top: 3px;
+        padding-bottom: 30px;
+    }
+
+    .banquet-tables-grid {
+        --table-size-room: clamp(64px, 16vh, 86px);
+        --seat-name-width: clamp(37px, 8vw, 50px);
+        --seat-name-height: clamp(20px, 4.8vh, 25px);
+        row-gap: 31px;
+        column-gap: clamp(76px, 15vw, 124px);
+    }
+
+    .banquet-room-picker {
+        top: 55%;
+    }
+
+    .banquet-room-tab {
+        min-height: 36px;
     }
 }

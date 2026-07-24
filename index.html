@@ -180,7 +180,7 @@
                 <p class="invite-greet">
                     诚邀
                     <span class="invitee-input-wrap">
-                        <input type="text" id="inviteeInput" class="invitee-input" placeholder="您的昵称" maxlength="12">
+                        <button type="button" id="inviteeNameButton" class="invitee-name-button">您的昵称</button>
                     </span><br>
                     您来参加我们的婚礼
                 </p>
@@ -199,6 +199,20 @@
                     把"今天"变成"每一天"
                 </p>
                 <button class="invite-close" id="inviteClose">×</button>
+            </div>
+        </div>
+
+        <!-- 昵称确认弹窗 -->
+        <div id="inviteeNameModal" class="invitee-name-modal hidden" role="dialog" aria-modal="true" aria-labelledby="inviteeNameTitle">
+            <div class="invitee-name-card">
+                <h3 id="inviteeNameTitle">填写您的昵称</h3>
+                <p class="invitee-name-tip">请输入 1-4 字昵称</p>
+                <input type="text" id="inviteeNameDraft" class="invitee-name-draft" maxlength="4" autocomplete="off" inputmode="text" placeholder="您的昵称">
+                <p id="inviteeNameError" class="invitee-name-error" aria-live="polite"></p>
+                <div class="invitee-name-actions">
+                    <button type="button" id="inviteeNameCancel" class="invitee-name-cancel">取消</button>
+                    <button type="button" id="inviteeNameConfirm" class="invitee-name-confirm">确认</button>
+                </div>
             </div>
         </div>
 
@@ -250,106 +264,53 @@
         <!-- 闪光层 -->
         <div id="flashLayer" class="flash-layer"></div>
     </div>
-<!-- ========== 新增：婚宴席位页面 ========== -->
+<!-- ========== 婚宴席位页面 ========== -->
 <div id="banquetPage" class="banquet-page hidden">
-    <!-- 返回按钮 -->
     <button class="banquet-back-btn" id="banquetBackBtn">返回</button>
-    <!-- 手动刷新座位 -->
     <button class="refresh-seat-btn" id="refreshSeatBtn">刷新</button>
-    <!-- 婚礼舞台 顶部25%高度 -->
+
     <div class="wedding-stage">
         <div class="stage-title">💜 婚礼舞台 💜</div>
         <div class="entrance-status" id="entranceStatus">五位新人正在入场</div>
         <div class="stage-platform">
             <div class="stage-member-group hidden" id="stageMemberGroup">
-                <span class="stage-emoji" data-id="3">😼</span>
-                <span class="stage-emoji" data-id="1">🐶</span>
-                <span class="stage-emoji" data-id="0">🐱</span>
-                <span class="stage-emoji" data-id="2">🐷</span>
-                <span class="stage-emoji" data-id="4">🐰</span>
+                <span class="stage-emoji" data-id="3" aria-label="蓝猫">😼</span>
+                <span class="stage-emoji" data-id="1" aria-label="绿狗">🐶</span>
+                <span class="stage-emoji" data-id="0" aria-label="黄猫">🐱</span>
+                <span class="stage-emoji" data-id="2" aria-label="橘猪">🐷</span>
+                <span class="stage-emoji" data-id="4" aria-label="红兔">🐰</span>
             </div>
         </div>
         <div class="stage-petals" id="stagePetals"></div>
     </div>
 
     <div class="banquet-main-container">
-        <!-- 左侧三桌 -->
-        <div class="table-column left-column">
-            <div class="round-table-wrap">
-                <div class="table-name-tag">福来方亲友</div>
-                <div class="round-table" data-table="left1">
-                    <div class="table-food-emoji">🍤🍗🍇<br>
-                        🥣🦀🥬</div>
-                    <div class="table-circle">
-                        <!-- 环形座位JS动态生成 -->
-                        <div class="seats-ring"></div>
-                    </div>
+        <section class="banquet-room-content" aria-live="polite">
+            <div class="banquet-tables-scroll">
+                <div id="banquetTablesGrid" class="banquet-tables-grid"></div>
+                <div class="center-corridor" aria-hidden="true">
+                    <div class="corridor-path"></div>
                 </div>
             </div>
-            <div class="round-table-wrap">
-                <div class="table-name-tag">棍方亲友</div>
-                <div class="round-table" data-table="left2">
-                    <div class="table-food-emoji">🍤🍰🍇<br>
-                        🥣🦀🥬</div>
-                    <div class="table-circle">
-                        <div class="seats-ring"></div>
-                    </div>
-                </div>
+        </section>
+
+        <nav class="banquet-room-picker" aria-label="选择宴会厅">
+            <div id="banquetRoomTabs" class="banquet-room-tabs">
+                <button class="banquet-room-tab is-active" type="button" data-room="fulai">福来厅</button>
+                <button class="banquet-room-tab" type="button" data-room="weiai">唯爱厅</button>
+                <button class="banquet-room-tab" type="button" data-room="hezuo">合作厅</button>
             </div>
-            <div class="round-table-wrap">
-                <div class="table-name-tag">极方亲友</div>
-                <div class="round-table" data-table="left3">
-                    <div class="table-food-emoji">🍤🍰🐟<br>🥣🦀🥬</div>
-                    <div class="table-circle">
-                        <div class="seats-ring"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- 中间竖走廊 -->
-        <div class="center-corridor">
-            <div class="corridor-path"></div>
-            <div class="walk-member-group" id="walkMemberGroup">
-                <span class="walk-emoji" data-id="0">🐱</span>
-                <span class="walk-emoji" data-id="1">🐶</span>
-                <span class="walk-emoji" data-id="2">🐷</span>
-                <span class="walk-emoji" data-id="3">😼</span>
-                <span class="walk-emoji" data-id="4">🐰</span>
-            </div>
-        </div>
-        <!-- 右侧三桌 -->
-        <div class="table-column right-column">
-            <div class="round-table-wrap">
-                <div class="table-name-tag">宝方亲友</div>
-                <div class="round-table" data-table="right1">
-                    <div class="table-food-emoji">🍤🍰🐟<br>🍗🦀🥬</div>
-                    <div class="table-circle">
-                        <div class="seats-ring"></div>
-                    </div>
-                </div>
-            </div>
-            <div class="round-table-wrap">
-                <div class="table-name-tag">航方亲友</div>
-                <div class="round-table" data-table="right2">
-                    <div class="table-food-emoji">🍤🍰🐟<br>🍗🍇🥬</div>
-                    <div class="table-circle">
-                        <div class="seats-ring"></div>
-                    </div>
-                </div>
-            </div>
-            <div class="round-table-wrap">
-                <div class="table-name-tag">铲方亲友</div>
-                <div class="round-table" data-table="right3">
-                    <div class="table-food-emoji">🍤🍰🐟<br>🍗🍇🦀</div>
-                    <div class="table-circle">
-                        <div class="seats-ring"></div>
-                    </div>
-                </div>
-            </div>
+        </nav>
+
+        <div class="walk-member-group" id="walkMemberGroup" aria-hidden="true">
+            <span class="walk-emoji" data-id="3">😼</span>
+            <span class="walk-emoji" data-id="1">🐶</span>
+            <span class="walk-emoji" data-id="0">🐱</span>
+            <span class="walk-emoji" data-id="2">🐷</span>
+            <span class="walk-emoji" data-id="4">🐰</span>
         </div>
     </div>
 
-    <!-- 确认弹窗 -->
     <div class="seat-confirm-modal hidden" id="seatConfirmModal">
         <div class="confirm-card">
             <p id="confirmText">确定选择这个座位落座吗？</p>
@@ -359,14 +320,12 @@
             </div>
         </div>
     </div>
-    <!-- 提示弹窗 -->
     <div class="tip-modal hidden" id="tipModal">
         <div class="tip-card">
             <p id="tipText"></p>
             <button class="tip-ok">知道了</button>
         </div>
     </div>
-    <!-- 点击闪光特效 -->
     <div class="click-effect-container"></div>
 </div>
 

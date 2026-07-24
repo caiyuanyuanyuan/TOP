@@ -98,18 +98,57 @@ function cloudStatusText(text, state = '') {
     status.dataset.state = state;
 }
 
+function normalizeInviteeName(rawName) {
+    return Array.from(String(rawName || '').trim()).slice(0, 4).join('');
+}
+
+function validateInviteeName(rawName) {
+    const name = String(rawName || '').trim();
+    const length = Array.from(name).length;
+    if (length < 1 || length > 4) {
+        return { ok: false, name: '', message: '昵称只能填写 1-4 个字' };
+    }
+    return { ok: true, name, message: '' };
+}
+
+function updateInviteeNameDisplay(rawName) {
+    const name = normalizeInviteeName(rawName);
+    const button = document.getElementById('inviteeNameButton');
+    if (!button) return;
+    button.textContent = name || '您的昵称';
+    button.classList.toggle('has-name', Boolean(name));
+}
+
 function getInviteeName() {
-    return (document.getElementById('inviteeInput')?.value || safeStorage.getItem('top_invitee_name') || '').trim();
+    return normalizeInviteeName(safeStorage.getItem('top_invitee_name') || '');
+}
+
+function openInviteeNameModal(statusText = '') {
+    const modal = document.getElementById('inviteeNameModal');
+    const draft = document.getElementById('inviteeNameDraft');
+    const error = document.getElementById('inviteeNameError');
+    if (!modal || !draft) return;
+    document.getElementById('inviteSidebar')?.classList.add('open');
+    if (statusText) cloudStatusText(statusText, 'warning');
+    draft.value = getInviteeName();
+    if (error) error.textContent = '';
+    modal.classList.remove('hidden');
+    window.setTimeout(() => {
+        draft.focus();
+        draft.setSelectionRange(draft.value.length, draft.value.length);
+    }, 0);
 }
 
 async function saveInviteeNameToCloud(rawName) {
-    const name = String(rawName || '').trim().slice(0, 12);
-    safeStorage.setItem('top_invitee_name', name);
-    if (!name) {
-        cloudStatusText('请填写昵称后再进入心选页面', 'warning');
+    const validation = validateInviteeName(rawName);
+    if (!validation.ok) {
+        cloudStatusText(validation.message, 'warning');
         return false;
     }
+    const name = validation.name;
     if (!cloud) {
+        safeStorage.setItem('top_invitee_name', name);
+        updateInviteeNameDisplay(name);
         cloudStatusText('当前为本地预览，配置 Supabase 后可多人共享', 'local');
         return true;
     }
@@ -129,6 +168,8 @@ async function saveInviteeNameToCloud(rawName) {
     await cloud.from('heart_choices')
         .update({ username: name, updated_at: new Date().toISOString() })
         .eq('user_id', currentCloudUserId);
+    safeStorage.setItem('top_invitee_name', name);
+    updateInviteeNameDisplay(name);
     cloudStatusText('已同步到婚礼星球 ✦', 'success');
     return true;
 }
@@ -150,9 +191,9 @@ async function loadInviteeNameFromCloud() {
         return;
     }
     if (data?.username) {
-        const input = document.getElementById('inviteeInput');
-        if (input) input.value = data.username;
-        safeStorage.setItem('top_invitee_name', data.username);
+        const cloudName = normalizeInviteeName(data.username);
+        safeStorage.setItem('top_invitee_name', cloudName);
+        updateInviteeNameDisplay(cloudName);
     }
     cloudStatusText('已连接婚礼星球 ✦', 'success');
 }
@@ -611,8 +652,12 @@ function spawnPetals() {
 // ========== 请柬侧边栏 ==========
 function initSidebar() {
     const sidebar = document.getElementById('inviteSidebar');
-    const inviteeInput = document.getElementById('inviteeInput');
-    let saveTimer = null;
+    const nameButton = document.getElementById('inviteeNameButton');
+    const nameModal = document.getElementById('inviteeNameModal');
+    const nameDraft = document.getElementById('inviteeNameDraft');
+    const nameError = document.getElementById('inviteeNameError');
+    const nameCancel = document.getElementById('inviteeNameCancel');
+    const nameConfirm = document.getElementById('inviteeNameConfirm');
 
     document.getElementById('inviteBtn').addEventListener('click', function(e) {
         e.stopPropagation();
@@ -621,18 +666,57 @@ function initSidebar() {
     document.getElementById('inviteClose').addEventListener('click', function(e) {
         e.stopPropagation();
         sidebar.classList.remove('open');
-        saveInviteeNameToCloud(inviteeInput.value);
     });
 
-    const saved = safeStorage.getItem('top_invitee_name');
-    if (saved) inviteeInput.value = saved;
-    inviteeInput.addEventListener('input', function() {
-        safeStorage.setItem('top_invitee_name', this.value);
-        cloudStatusText('昵称尚未同步', 'syncing');
-        clearTimeout(saveTimer);
-        saveTimer = setTimeout(() => saveInviteeNameToCloud(this.value), 650);
+    const saved = normalizeInviteeName(safeStorage.getItem('top_invitee_name'));
+    if (saved) safeStorage.setItem('top_invitee_name', saved);
+    updateInviteeNameDisplay(saved);
+
+    nameButton?.addEventListener('click', event => {
+        event.stopPropagation();
+        openInviteeNameModal();
     });
-    inviteeInput.addEventListener('blur', () => saveInviteeNameToCloud(inviteeInput.value));
+
+    const closeNameModal = () => {
+        nameModal?.classList.add('hidden');
+        if (nameError) nameError.textContent = '';
+    };
+
+    nameCancel?.addEventListener('click', closeNameModal);
+    nameModal?.addEventListener('click', event => {
+        if (event.target === nameModal) closeNameModal();
+    });
+
+    const confirmInviteeName = async () => {
+        if (!nameDraft || !nameConfirm) return;
+        const validation = validateInviteeName(nameDraft.value);
+        if (!validation.ok) {
+            if (nameError) nameError.textContent = validation.message;
+            nameDraft.focus();
+            return;
+        }
+
+        nameConfirm.disabled = true;
+        if (nameError) nameError.textContent = '';
+        const savedToCloud = await saveInviteeNameToCloud(validation.name);
+        nameConfirm.disabled = false;
+        if (!savedToCloud) {
+            if (nameError) nameError.textContent = cloud ? '昵称写入数据库失败，请检查网络后重试' : '昵称保存失败，请重试';
+            return;
+        }
+        closeNameModal();
+    };
+
+    nameConfirm?.addEventListener('click', confirmInviteeName);
+    nameDraft?.addEventListener('keydown', event => {
+        if (event.key === 'Enter' && !event.isComposing) {
+            event.preventDefault();
+            confirmInviteeName();
+        }
+    });
+    nameDraft?.addEventListener('input', () => {
+        if (nameError) nameError.textContent = '';
+    });
 }
 
 // ========== 开屏打字机动画 ==========
@@ -966,22 +1050,49 @@ function spawnFireworks() {
     }
 }
 
-// ====================== 婚宴席位页面逻辑｜Supabase 云端座位 ======================
-const TABLE_IDS = ['left1', 'left2', 'left3', 'right1', 'right2', 'right3'];
+// ====================== 婚宴席位页面逻辑｜三个包厢 + Supabase 云端座位 ======================
+const BANQUET_ROOMS = [
+    {
+        key: 'fulai',
+        name: '福来厅',
+        tables: Array.from({ length: 10 }, (_, index) => ({
+            id: `fulai${String(index + 1).padStart(2, '0')}`,
+            label: '福来方亲友'
+        }))
+    },
+    {
+        key: 'weiai',
+        name: '唯爱厅',
+        tables: ['棍方亲友', '棍方亲友', '宝方亲友', '宝方亲友', '极方亲友', '极方亲友', '航方亲友', '航方亲友', '铲方亲友', '铲方亲友']
+            .map((label, index) => ({
+                id: `weiai${String(index + 1).padStart(2, '0')}`,
+                label
+            }))
+    },
+    {
+        key: 'hezuo',
+        name: '合作厅',
+        tables: ['星星妹', '星星妹', '小锹', '小锹', '棍宝', '极志极', '鑫之左想', '宝铲', '其他', '其他']
+            .map((label, index) => ({
+                id: `hezuo${String(index + 1).padStart(2, '0')}`,
+                label
+            }))
+    }
+];
 
-const tableEmojiMap = {
-    left1: "🦋",
-    left2: "🐱",
-    left3: "🐷",
-    right1: "🐶",
-    right2: "😺",
-    right3: "🐰"
-};
+const TABLE_IDS = BANQUET_ROOMS.flatMap(room => room.tables.map(table => table.id));
+const BANQUET_TABLE_MAP = new Map(
+    BANQUET_ROOMS.flatMap(room => room.tables.map((table, index) => [
+        table.id,
+        { ...table, roomKey: room.key, roomName: room.name, tableNumber: index + 1 }
+    ]))
+);
 
-let userId = safeStorage.getItem("wedding_user_id");
+let activeBanquetRoomKey = 'fulai';
+let userId = safeStorage.getItem('wedding_user_id');
 if (!userId) {
-    userId = "u_" + Math.random().toString(36).slice(2) + Date.now().toString(36);
-    safeStorage.setItem("wedding_user_id", userId);
+    userId = 'u_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+    safeStorage.setItem('wedding_user_id', userId);
 }
 
 let seatData = null;
@@ -994,15 +1105,35 @@ function createEmptySeatData() {
     return { seats: Object.fromEntries(TABLE_IDS.map(id => [id, Array(8).fill(null)])) };
 }
 
+function normalizeSeatOccupier(value) {
+    if (!value) return null;
+    if (typeof value === 'string') {
+        return {
+            userId: value,
+            username: value === userId ? (getInviteeName() || '我') : '已入席'
+        };
+    }
+    const occupierId = value.userId || value.user_id;
+    if (!occupierId) return null;
+    return {
+        userId: occupierId,
+        username: normalizeInviteeName(value.username) || (occupierId === userId ? (getInviteeName() || '我') : '已入席')
+    };
+}
+
 function normalizeSeatData(data) {
     const normalized = data && typeof data === 'object' ? data : createEmptySeatData();
     if (!normalized.seats || typeof normalized.seats !== 'object') normalized.seats = {};
     TABLE_IDS.forEach(id => {
         const source = Array.isArray(normalized.seats[id]) ? normalized.seats[id].slice(0, 8) : [];
         while (source.length < 8) source.push(null);
-        normalized.seats[id] = source;
+        normalized.seats[id] = source.map(normalizeSeatOccupier);
     });
     return normalized;
+}
+
+function activeSeatUserId(occupier) {
+    return occupier?.userId || null;
 }
 
 async function loadRemoteSeat({ silent = false } = {}) {
@@ -1016,19 +1147,44 @@ async function loadRemoteSeat({ silent = false } = {}) {
         if (!silent) showTip('当前为本地预览，配置 Supabase 后可共享座位');
         return false;
     }
+
     try {
         const session = await ensureCloudSession();
         if (!session) throw new Error('未建立匿名会话');
-        const { data, error } = await cloud.from('banquet_seats')
+
+        const { data: seatRows, error: seatError } = await cloud
+            .from('banquet_seats')
             .select('table_id,seat_index,user_id');
-        if (error) throw error;
+        if (seatError) throw seatError;
+
+        const userIds = [...new Set((seatRows || []).map(row => row.user_id).filter(Boolean))];
+        const guestNameMap = new Map();
+
+        if (userIds.length) {
+            const { data: guestRows, error: guestError } = await cloud
+                .from('wedding_guests')
+                .select('user_id,username')
+                .in('user_id', userIds);
+            if (guestError) throw guestError;
+            (guestRows || []).forEach(row => {
+                guestNameMap.set(row.user_id, normalizeInviteeName(row.username));
+            });
+        }
+
         seatData = createEmptySeatData();
-        (data || []).forEach(row => {
-            if (TABLE_IDS.includes(row.table_id) && Number.isInteger(row.seat_index)
-                && row.seat_index >= 0 && row.seat_index < 8) {
-                seatData.seats[row.table_id][row.seat_index] = row.user_id;
-            }
+        (seatRows || []).forEach(row => {
+            if (!TABLE_IDS.includes(row.table_id)
+                || !Number.isInteger(row.seat_index)
+                || row.seat_index < 0
+                || row.seat_index >= 8) return;
+
+            seatData.seats[row.table_id][row.seat_index] = {
+                userId: row.user_id,
+                username: guestNameMap.get(row.user_id)
+                    || (row.user_id === userId ? (getInviteeName() || '我') : '已入席')
+            };
         });
+
         safeStorage.setItem('localSeatBackup', JSON.stringify(seatData));
         renderAllSeat();
         return true;
@@ -1046,16 +1202,20 @@ async function loadRemoteSeat({ silent = false } = {}) {
 }
 
 async function claimRemoteSeat(tableId, seatIndex) {
+    const username = getInviteeName();
+    if (!username) return { ok: false, message: 'missing_name' };
+
     if (!cloud) {
         seatData = normalizeSeatData(seatData);
         if (seatData.seats[tableId][seatIndex] !== null) return { ok: false, message: 'occupied' };
         TABLE_IDS.forEach(id => {
-            seatData.seats[id] = seatData.seats[id].map(value => value === userId ? null : value);
+            seatData.seats[id] = seatData.seats[id].map(value => activeSeatUserId(value) === userId ? null : value);
         });
-        seatData.seats[tableId][seatIndex] = userId;
+        seatData.seats[tableId][seatIndex] = { userId, username };
         safeStorage.setItem('localSeatBackup', JSON.stringify(seatData));
         return { ok: true, local: true };
     }
+
     const session = await ensureCloudSession();
     if (!session) return { ok: false, message: 'offline' };
     const { data, error } = await cloud.rpc('claim_banquet_seat', {
@@ -1072,13 +1232,14 @@ async function claimRemoteSeat(tableId, seatIndex) {
 async function releaseRemoteSeat(tableId, seatIndex) {
     if (!cloud) {
         seatData = normalizeSeatData(seatData);
-        if (seatData.seats[tableId][seatIndex] === userId) {
+        if (activeSeatUserId(seatData.seats[tableId][seatIndex]) === userId) {
             seatData.seats[tableId][seatIndex] = null;
             safeStorage.setItem('localSeatBackup', JSON.stringify(seatData));
             return { ok: true, local: true };
         }
         return { ok: false };
     }
+
     const session = await ensureCloudSession();
     if (!session) return { ok: false, message: 'offline' };
     const { data, error } = await cloud.rpc('release_banquet_seat');
@@ -1086,72 +1247,137 @@ async function releaseRemoteSeat(tableId, seatIndex) {
     return data || { ok: true };
 }
 
-function initBanquetPage() {
-    const seatBtn = document.getElementById("seatBtn");
-    const banquetPage = document.getElementById("banquetPage");
-    const backBtn = document.getElementById("banquetBackBtn");
-    const refreshBtn = document.getElementById("refreshSeatBtn");
-    const confirmModal = document.getElementById("seatConfirmModal");
-    const tipModal = document.getElementById("tipModal");
-    const confirmCancel = confirmModal.querySelector(".confirm-cancel");
-    const confirmOk = confirmModal.querySelector(".confirm-ok");
-    const tipOk = tipModal.querySelector(".tip-ok");
+function getBanquetRoom(roomKey) {
+    return BANQUET_ROOMS.find(room => room.key === roomKey) || BANQUET_ROOMS[0];
+}
 
-    document.querySelectorAll(".round-table").forEach(table => {
-        const ring = table.querySelector(".seats-ring");
-        if (ring.children.length) return;
-        const tableId = table.dataset.table;
-        for (let index = 0; index < 8; index++) {
-            const seat = document.createElement("button");
-            seat.type = 'button';
-            seat.className = "seat";
-            seat.dataset.table = tableId;
-            seat.dataset.seatIdx = String(index);
-            seat.setAttribute('aria-label', `${tableId} 第${index + 1}号座位`);
-            ring.appendChild(seat);
+function renderBanquetRoom(roomKey = activeBanquetRoomKey) {
+    const room = getBanquetRoom(roomKey);
+    const grid = document.getElementById('banquetTablesGrid');
+    if (!grid) return;
 
-            seat.addEventListener("click", async event => {
-                event.stopPropagation();
-                const tid = seat.dataset.table;
-                const sid = Number(seat.dataset.seatIdx);
-                await loadRemoteSeat({ silent: true });
-                if (!seatData?.seats) return;
-                const occupier = seatData.seats[tid][sid];
-                if (occupier !== null) {
-                    showTip(occupier === userId ? "这是你当前的座位，长按可释放" : "该座位已被其他人占用");
-                    return;
-                }
-                pendingSeat = { tableId: tid, seatIndex: sid };
-                openConfirm();
-            });
+    activeBanquetRoomKey = room.key;
 
-            let longPressTimer = null;
-            let longPressTriggered = false;
-            const cancelLongPress = () => {
-                clearTimeout(longPressTimer);
-                longPressTimer = null;
-            };
-            seat.addEventListener('pointerdown', () => {
-                longPressTriggered = false;
-                longPressTimer = setTimeout(async () => {
-                    const tid = seat.dataset.table;
-                    const sid = Number(seat.dataset.seatIdx);
-                    if (seatData?.seats?.[tid]?.[sid] === userId) {
-                        longPressTriggered = true;
-                        const result = await releaseRemoteSeat(tid, sid);
-                        await loadRemoteSeat({ silent: true });
-                        showTip(result.ok ? "已释放你的座位" : "座位释放失败，请稍后重试");
-                    }
-                }, 720);
-            });
-            ['pointerup', 'pointercancel', 'pointerleave'].forEach(type => seat.addEventListener(type, cancelLongPress));
-            seat.addEventListener('contextmenu', event => event.preventDefault());
-        }
+    document.querySelectorAll('.banquet-room-tab').forEach(tab => {
+        const active = tab.dataset.room === room.key;
+        tab.classList.toggle('is-active', active);
+        tab.setAttribute('aria-pressed', String(active));
     });
 
-    seatBtn.addEventListener("click", async event => {
+    grid.innerHTML = room.tables.map(table => `
+        <div class="round-table-wrap" data-table-wrap="${table.id}">
+            <div class="round-table" data-table="${table.id}">
+                <div class="table-center-content">
+                    <div class="table-center-label">${escapeHtml(table.label)}</div>
+                    <div class="table-food-emoji" aria-hidden="true">🍤🍰🍇<br>🥣🦀🥬</div>
+                </div>
+                <div class="table-circle"><div class="seats-ring"></div></div>
+            </div>
+        </div>
+    `).join('');
+
+    grid.querySelectorAll('.round-table').forEach(createSeatsForTable);
+    renderAllSeat();
+    requestAnimationFrame(layoutSeatRings);
+}
+
+function createSeatsForTable(table) {
+    const ring = table.querySelector('.seats-ring');
+    const tableId = table.dataset.table;
+    if (!ring || ring.children.length) return;
+
+    for (let index = 0; index < 8; index++) {
+        const seat = document.createElement('button');
+        seat.type = 'button';
+        seat.className = 'seat';
+        seat.dataset.table = tableId;
+        seat.dataset.seatIdx = String(index);
+        seat.setAttribute('aria-label', `${tableDisplayName(tableId)}第${index + 1}号座位`);
+        ring.appendChild(seat);
+
+        seat.addEventListener('click', async event => {
+            event.stopPropagation();
+            const tid = seat.dataset.table;
+            const sid = Number(seat.dataset.seatIdx);
+            await loadRemoteSeat({ silent: true });
+            if (!seatData?.seats) return;
+            const occupier = seatData.seats[tid][sid];
+            if (occupier !== null) {
+                showTip(activeSeatUserId(occupier) === userId
+                    ? '这是你当前的座位，长按可释放'
+                    : `该座位已由${occupier.username || '其他宾客'}入座`);
+                return;
+            }
+            pendingSeat = { tableId: tid, seatIndex: sid };
+            const confirmText = document.getElementById('confirmText');
+            if (confirmText) {
+                confirmText.textContent = `确定选择${tableDisplayName(tid)}第${sid + 1}号座位吗？`;
+            }
+            openConfirm();
+        });
+
+        let longPressTimer = null;
+        const cancelLongPress = () => {
+            clearTimeout(longPressTimer);
+            longPressTimer = null;
+        };
+
+        seat.addEventListener('pointerdown', () => {
+            longPressTimer = setTimeout(async () => {
+                const tid = seat.dataset.table;
+                const sid = Number(seat.dataset.seatIdx);
+                if (activeSeatUserId(seatData?.seats?.[tid]?.[sid]) === userId) {
+                    const result = await releaseRemoteSeat(tid, sid);
+                    await loadRemoteSeat({ silent: true });
+                    showTip(result.ok ? '已释放你的座位' : '座位释放失败，请稍后重试');
+                }
+            }, 720);
+        });
+        ['pointerup', 'pointercancel', 'pointerleave'].forEach(type => seat.addEventListener(type, cancelLongPress));
+        seat.addEventListener('contextmenu', event => event.preventDefault());
+    }
+}
+
+function initBanquetPage() {
+    const seatBtn = document.getElementById('seatBtn');
+    const banquetPage = document.getElementById('banquetPage');
+    const backBtn = document.getElementById('banquetBackBtn');
+    const refreshBtn = document.getElementById('refreshSeatBtn');
+    const confirmModal = document.getElementById('seatConfirmModal');
+    const tipModal = document.getElementById('tipModal');
+    const confirmCancel = confirmModal?.querySelector('.confirm-cancel');
+    const confirmOk = confirmModal?.querySelector('.confirm-ok');
+    const tipOk = tipModal?.querySelector('.tip-ok');
+
+    if (!seatBtn || !banquetPage || !backBtn || !refreshBtn || !confirmModal || !tipModal || !confirmCancel || !confirmOk || !tipOk) {
+        console.warn('入席页面缺少必要元素，入席功能未初始化。');
+        return;
+    }
+
+    renderBanquetRoom('fulai');
+
+    document.getElementById('banquetRoomTabs')?.addEventListener('click', event => {
+        const tab = event.target.closest('.banquet-room-tab');
+        if (!tab) return;
+        renderBanquetRoom(tab.dataset.room);
+    });
+
+    seatBtn.addEventListener('click', async event => {
         event.stopPropagation();
-        banquetPage.classList.remove("hidden");
+        const name = getInviteeName();
+        if (!name) {
+            openInviteeNameModal('请先填写1-4字昵称，再选择座位 ✦');
+            return;
+        }
+
+        const nameSaved = await saveInviteeNameToCloud(name);
+        if (cloud && !nameSaved) {
+            document.getElementById('inviteSidebar')?.classList.add('open');
+            return;
+        }
+
+        banquetPage.classList.remove('hidden');
+        renderBanquetRoom(activeBanquetRoomKey);
         resetEntrance();
         requestAnimationFrame(() => {
             layoutSeatRings();
@@ -1160,18 +1386,18 @@ function initBanquetPage() {
         await loadRemoteSeat({ silent: true });
     });
 
-    backBtn.addEventListener("click", () => {
-        banquetPage.classList.add("hidden");
+    backBtn.addEventListener('click', () => {
+        banquetPage.classList.add('hidden');
         resetEntrance();
     });
 
-    refreshBtn.addEventListener("click", async () => {
+    refreshBtn.addEventListener('click', async () => {
         const success = await loadRemoteSeat({ silent: true });
-        showTip(success ? "座位已刷新" : "刷新失败，已显示本地缓存");
+        showTip(success ? '座位已刷新' : '刷新失败，已显示本地缓存');
     });
 
-    document.querySelectorAll(".stage-emoji").forEach(emoji => {
-        emoji.addEventListener("click", event => createClickEffect(event.clientX, event.clientY, "✨"));
+    document.querySelectorAll('.stage-emoji').forEach(emoji => {
+        emoji.addEventListener('click', event => createClickEffect(event.clientX, event.clientY, '✨'));
     });
 
     confirmOk.onclick = async () => {
@@ -1181,22 +1407,25 @@ function initBanquetPage() {
         const result = await claimRemoteSeat(tableId, seatIndex);
         await loadRemoteSeat({ silent: true });
         confirmOk.disabled = false;
-        confirmModal.classList.add("hidden");
+        confirmModal.classList.add('hidden');
         pendingSeat = null;
+
         if (result.ok) {
             showTip(`落座成功！欢迎来到${tableDisplayName(tableId)}`);
         } else if (result.message === 'occupied') {
-            showTip("座位刚刚被其他人占用，请重新选择");
+            showTip('座位刚刚被其他人占用，请重新选择');
+        } else if (result.message === 'missing_name') {
+            showTip('请先在请柬中填写1-4字昵称');
         } else {
-            showTip("云端落座失败，请检查网络后重试");
+            showTip('云端落座失败，请检查网络后重试');
         }
     };
 
     confirmCancel.onclick = () => {
-        confirmModal.classList.add("hidden");
+        confirmModal.classList.add('hidden');
         pendingSeat = null;
     };
-    tipOk.onclick = () => tipModal.classList.add("hidden");
+    tipOk.onclick = () => tipModal.classList.add('hidden');
     confirmModal.addEventListener('click', event => {
         if (event.target === confirmModal) confirmCancel.click();
     });
@@ -1211,7 +1440,8 @@ function initBanquetPage() {
 }
 
 function tableDisplayName(tableId) {
-    return ({ left1: '福来方亲友席', left2: '棍方亲友席', left3: '极方亲友席', right1: '宝方亲友席', right2: '航方亲友席', right3: '铲方亲友席' })[tableId] || '婚宴席';
+    const table = BANQUET_TABLE_MAP.get(tableId);
+    return table ? `${table.roomName} · ${table.label}` : '婚宴席';
 }
 
 function layoutSeatRings() {
@@ -1219,49 +1449,52 @@ function layoutSeatRings() {
         const seats = [...ring.querySelectorAll('.seat')];
         const rect = ring.getBoundingClientRect();
         if (!seats.length || rect.width < 20 || rect.height < 20) return;
-        const seatSize = seats[0].getBoundingClientRect().width || 24;
+        const seatRect = seats[0].getBoundingClientRect();
+        const seatWidth = seatRect.width || 42;
+        const seatHeight = seatRect.height || 24;
         const centerX = rect.width / 2;
         const centerY = rect.height / 2;
-        const radius = Math.min(rect.width, rect.height) / 2 + seatSize * 0.5 + 10;
+        const radiusX = rect.width / 2 + seatWidth * 0.48 + 8;
+        const radiusY = rect.height / 2 + seatHeight * 0.52 + 8;
         seats.forEach((seat, index) => {
             const angle = -Math.PI / 2 + (Math.PI * 2 / seats.length) * index;
-            seat.style.left = `${centerX + Math.cos(angle) * radius}px`;
-            seat.style.top = `${centerY + Math.sin(angle) * radius}px`;
+            seat.style.left = `${centerX + Math.cos(angle) * radiusX}px`;
+            seat.style.top = `${centerY + Math.sin(angle) * radiusY}px`;
         });
     });
 }
 
 function openConfirm() {
-    document.getElementById("seatConfirmModal").classList.remove("hidden");
+    document.getElementById('seatConfirmModal')?.classList.remove('hidden');
 }
 
 function showTip(text) {
-    const tipText = document.getElementById("tipText");
-    const modal = document.getElementById("tipModal");
+    const tipText = document.getElementById('tipText');
+    const modal = document.getElementById('tipModal');
     if (!tipText || !modal) return;
     tipText.textContent = text;
-    modal.classList.remove("hidden");
+    modal.classList.remove('hidden');
 }
 
 function resetEntrance() {
     clearTimeout(entranceFinishTimer);
     entranceAnimation?.cancel();
     entranceAnimation = null;
-    const walkGroup = document.getElementById("walkMemberGroup");
-    const stageGroup = document.getElementById("stageMemberGroup");
+    const walkGroup = document.getElementById('walkMemberGroup');
+    const stageGroup = document.getElementById('stageMemberGroup');
     const status = document.getElementById('entranceStatus');
     if (!walkGroup || !stageGroup) return;
-    walkGroup.style.display = "flex";
+    walkGroup.style.display = 'flex';
     walkGroup.style.opacity = '1';
     walkGroup.style.transform = 'translateX(-50%)';
     walkGroup.classList.remove('is-walking');
-    stageGroup.classList.add("hidden");
+    stageGroup.classList.add('hidden');
     if (status) status.textContent = '五位新人正在入场';
 }
 
 function startWalkAnimation() {
-    const walkGroup = document.getElementById("walkMemberGroup");
-    const stageGroup = document.getElementById("stageMemberGroup");
+    const walkGroup = document.getElementById('walkMemberGroup');
+    const stageGroup = document.getElementById('stageMemberGroup');
     const stage = document.querySelector('.wedding-stage');
     const status = document.getElementById('entranceStatus');
     if (!walkGroup || !stageGroup || !stage) return;
@@ -1321,31 +1554,50 @@ function scatterStagePetals() {
     }
 }
 
+function fitSeatNameText(seat) {
+    seat.style.fontSize = '';
+    if (!seat.textContent) return;
+    window.requestAnimationFrame(() => {
+        const availableWidth = Math.max(0, seat.clientWidth - 6);
+        let fontSize = parseFloat(window.getComputedStyle(seat).fontSize) || 10;
+        while (seat.scrollWidth > availableWidth && fontSize > 6) {
+            fontSize -= 0.5;
+            seat.style.fontSize = `${fontSize}px`;
+        }
+    });
+}
+
 function renderAllSeat() {
     seatData = normalizeSeatData(seatData);
-    document.querySelectorAll(".seat").forEach(seat => {
+    document.querySelectorAll('.seat').forEach(seat => {
         const tableId = seat.dataset.table;
         const seatIndex = Number(seat.dataset.seatIdx);
-        const occupier = seatData.seats[tableId][seatIndex];
+        const occupier = seatData.seats[tableId]?.[seatIndex] || null;
         const occupied = occupier !== null;
-        seat.textContent = occupied ? tableEmojiMap[tableId] : "";
-        seat.classList.toggle("occupied", occupied);
-        seat.classList.toggle("own-seat", occupier === userId);
+        const ownSeat = activeSeatUserId(occupier) === userId;
+        const username = occupied ? (occupier.username || '已入席') : '';
+
+        seat.textContent = username;
+        seat.classList.toggle('occupied', occupied);
+        seat.classList.toggle('own-seat', ownSeat);
+        seat.dataset.nameLength = String(Array.from(username).length);
         seat.setAttribute('aria-label', occupied
-            ? (occupier === userId ? `${tableDisplayName(tableId)}第${seatIndex + 1}号，你的座位` : `${tableDisplayName(tableId)}第${seatIndex + 1}号，已占用`)
+            ? `${tableDisplayName(tableId)}第${seatIndex + 1}号，${username}${ownSeat ? '，你的座位' : '已入座'}`
             : `${tableDisplayName(tableId)}第${seatIndex + 1}号，空位`);
+        seat.title = occupied ? `${username}${ownSeat ? '（我的座位）' : ''}` : '空位';
+        fitSeatNameText(seat);
     });
     requestAnimationFrame(layoutSeatRings);
 }
 
 function createClickEffect(x, y, text) {
-    const container = document.querySelector(".click-effect-container");
+    const container = document.querySelector('.click-effect-container');
     if (!container) return;
-    const element = document.createElement("div");
-    element.className = "click-effect";
+    const element = document.createElement('div');
+    element.className = 'click-effect';
     element.textContent = text;
-    element.style.left = x + "px";
-    element.style.top = y + "px";
+    element.style.left = x + 'px';
+    element.style.top = y + 'px';
     container.appendChild(element);
     setTimeout(() => element.remove(), 700);
 }
@@ -1357,10 +1609,12 @@ const HEART_CATEGORIES = [
     { key: 'daughter', title: '你的女儿是', roles: ['女儿'] },
     { key: 'son', title: '你的儿子是', roles: ['儿子'] },
     { key: 'wife', title: '你的老婆是', roles: ['老婆'] },
-    { key: 'husband', title: '你的老公是', roles: ['老公'] }
+    { key: 'husband', title: '你的老公是', roles: ['老公'] },
+    { key: 'brother', title: '你的哥哥是', roles: ['哥哥'] },
+    { key: 'sister', title: '你的妹妹是', roles: ['妹妹'] }
 ];
 
-const RELATION_ORDER = ['爸爸', '妈妈', '女儿', '儿子', '老婆', '老公'];
+const RELATION_ORDER = ['爸爸', '妈妈', '女儿', '儿子', '老婆', '老公', '哥哥', '妹妹'];
 
 let activeHeartCategory = null;
 let heartSlotsState = [];
@@ -1390,9 +1644,7 @@ function initHeartPicker() {
 
         const name = getInviteeName();
         if (!name) {
-            document.getElementById('inviteSidebar')?.classList.add('open');
-            document.getElementById('inviteeInput')?.focus();
-            cloudStatusText('请先填写昵称，再来开启命运轮盘 ✦', 'warning');
+            openInviteeNameModal('请先填写昵称，再来开启命运轮盘 ✦');
             return;
         }
 
